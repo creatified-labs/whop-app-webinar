@@ -1,60 +1,110 @@
-import { Button } from "@whop/react/components";
-import { headers } from "next/headers";
-import Link from "next/link";
-import { whopsdk } from "@/lib/whop-sdk";
+import Link from 'next/link';
+import { headers } from 'next/headers';
+import { Plus, Eye, Users, Radio, Calendar } from 'lucide-react';
+import { Button } from '@whop/react/components';
+import { whopsdk } from '@/lib/whop-sdk';
+import { getCompanyByWhopId } from '@/lib/data/companies';
+import { getCompanyWebinars } from '@/lib/data/webinars';
+import { StatsCard, StatsGrid } from '@/components/dashboard/stats-card';
+import { WebinarList } from '@/components/dashboard/webinar-card';
 
-export default async function DashboardPage({
-	params,
-}: {
-	params: Promise<{ companyId: string }>;
-}) {
-	const { companyId } = await params;
-	// Ensure the user is logged in on whop.
-	const { userId } = await whopsdk.verifyUserToken(await headers());
-
-	// Fetch the neccessary data we want from whop.
-	const [company, user, access] = await Promise.all([
-		whopsdk.companies.retrieve(companyId),
-		whopsdk.users.retrieve(userId),
-		whopsdk.users.checkAccess(companyId, { id: userId }),
-	]);
-
-	const displayName = user.name || `@${user.username}`;
-
-	return (
-		<div className="flex flex-col p-8 gap-4">
-			<div className="flex justify-between items-center gap-4">
-				<h1 className="text-9">
-					Hi <strong>{displayName}</strong>!
-				</h1>
-				<Link href="https://docs.whop.com/apps" target="_blank">
-					<Button variant="classic" className="w-full" size="3">
-						Developer Docs
-					</Button>
-				</Link>
-			</div>
-
-			<p className="text-3 text-gray-10">
-				Welcome to you whop app! Replace this template with your own app. To
-				get you started, here's some helpful data you can fetch from whop.
-			</p>
-
-			<h3 className="text-6 font-bold">Company data</h3>
-			<JsonViewer data={company} />
-
-			<h3 className="text-6 font-bold">User data</h3>
-			<JsonViewer data={user} />
-
-			<h3 className="text-6 font-bold">Access data</h3>
-			<JsonViewer data={access} />
-		</div>
-	);
+interface DashboardPageProps {
+  params: Promise<{ companyId: string }>;
 }
 
-function JsonViewer({ data }: { data: any }) {
-	return (
-		<pre className="text-2 border border-gray-a4 rounded-lg p-4 bg-gray-a2 max-h-72 overflow-y-auto">
-			<code className="text-gray-10">{JSON.stringify(data, null, 2)}</code>
-		</pre>
-	);
+/**
+ * Dashboard Overview Page
+ * Card grid showing stats and webinars
+ */
+export default async function DashboardPage({ params }: DashboardPageProps) {
+  const { companyId: whopCompanyId } = await params;
+
+  // Verify user
+  await whopsdk.verifyUserToken(await headers());
+
+  // Get company from our database
+  const company = await getCompanyByWhopId(whopCompanyId);
+  if (!company) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-6 text-center">
+          <p className="text-amber-800">
+            Company not found. Please refresh the page to sync your data.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Get webinars with registration counts
+  const { webinars } = await getCompanyWebinars(company.id);
+
+  // Calculate stats
+  const totalWebinars = webinars.length;
+  const liveWebinars = webinars.filter((w) => w.status === 'live').length;
+  const scheduledWebinars = webinars.filter((w) => w.status === 'scheduled').length;
+
+  // For now, we'll show placeholder stats - real analytics will come in a later phase
+  const totalRegistrations = 0; // TODO: Aggregate from all webinars
+  const totalViews = 0; // TODO: From analytics
+
+  return (
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      {/* Header */}
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="mt-1 text-gray-500">
+            Manage your webinars and view performance
+          </p>
+        </div>
+        <Link href={`/dashboard/${whopCompanyId}/webinars/new`}>
+          <Button variant="solid">
+            <Plus className="mr-2 h-4 w-4" />
+            Create Webinar
+          </Button>
+        </Link>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="mb-8">
+        <StatsGrid>
+          <StatsCard
+            title="Total Webinars"
+            value={totalWebinars}
+            icon={Calendar}
+            description={`${scheduledWebinars} scheduled`}
+          />
+          <StatsCard
+            title="Live Now"
+            value={liveWebinars}
+            icon={Radio}
+          />
+          <StatsCard
+            title="Total Registrations"
+            value={totalRegistrations}
+            icon={Users}
+            description="Across all webinars"
+          />
+          <StatsCard
+            title="Total Views"
+            value={totalViews}
+            icon={Eye}
+            description="Live + replay"
+          />
+        </StatsGrid>
+      </div>
+
+      {/* Webinar List */}
+      <div>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-gray-900">Your Webinars</h2>
+        </div>
+        <WebinarList
+          webinars={webinars.map((w) => ({ ...w, registration_count: 0 }))}
+          companyId={whopCompanyId}
+        />
+      </div>
+    </div>
+  );
 }

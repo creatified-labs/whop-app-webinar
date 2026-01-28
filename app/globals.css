@@ -13,3 +13,19 @@ body {
 	color: var(--foreground);
 	font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Reaction float animation */
+@keyframes float-up {
+	0% {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+	100% {
+		opacity: 0;
+		transform: translateY(-200px) scale(1.5);
+	}
+}
+
+.animate-float {
+	animation: float-up 2s ease-out forwards;
+}
