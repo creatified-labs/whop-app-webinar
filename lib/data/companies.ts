@@ -272,6 +272,55 @@ export async function removeCompanyMember(companyId: string, userId: string): Pr
 }
 
 /**
+ * Get all members of a company with user details
+ */
+export async function getCompanyMembersWithUsers(
+  companyId: string
+): Promise<(CompanyMember & { user: import('@/types/database').User })[]> {
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase
+    .from('company_members')
+    .select(`
+      *,
+      user:users(*)
+    `)
+    .eq('company_id', companyId)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    throw new Error(`Failed to get company members: ${error.message}`);
+  }
+
+  return data as (CompanyMember & { user: import('@/types/database').User })[];
+}
+
+/**
+ * Update a member's role in a company
+ */
+export async function updateMemberRole(
+  companyId: string,
+  userId: string,
+  role: CompanyRole
+): Promise<CompanyMember> {
+  const supabase = createAdminClient();
+
+  const { data, error } = await supabase
+    .from('company_members')
+    .update({ role })
+    .eq('company_id', companyId)
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to update member role: ${error.message}`);
+  }
+
+  return data;
+}
+
+/**
  * Sync a user's company membership from Whop
  * Call this after verifying access via Whop SDK
  */

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import { ALLOWED_REACTIONS } from '@/lib/validations/webinar';
+import { useState, useCallback } from "react";
+import { ALLOWED_REACTIONS } from "@/lib/validations/webinar";
 
 interface ReactionBarProps {
   onReaction: (emoji: string) => void;
@@ -10,33 +10,36 @@ interface ReactionBarProps {
 
 /**
  * Reaction Bar
- * Emoji reaction buttons for live engagement
+ * Premium compact pill with emoji buttons and scale effects
  */
 export function ReactionBar({ onReaction, disabled }: ReactionBarProps) {
   const [cooldown, setCooldown] = useState<string | null>(null);
 
-  const handleReaction = useCallback((emoji: string) => {
-    if (cooldown || disabled) return;
+  const handleReaction = useCallback(
+    (emoji: string) => {
+      if (cooldown || disabled) return;
 
-    onReaction(emoji);
-    setCooldown(emoji);
+      onReaction(emoji);
+      setCooldown(emoji);
 
-    // 1 second cooldown per emoji
-    setTimeout(() => {
-      setCooldown(null);
-    }, 1000);
-  }, [cooldown, disabled, onReaction]);
+      // 1 second cooldown per emoji
+      setTimeout(() => {
+        setCooldown(null);
+      }, 1000);
+    },
+    [cooldown, disabled, onReaction]
+  );
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1 rounded-full bg-zinc-800/80 p-1 ring-1 ring-white/10 backdrop-blur-sm">
       {ALLOWED_REACTIONS.map((emoji) => (
         <button
           key={emoji}
           onClick={() => handleReaction(emoji)}
           disabled={cooldown === emoji || disabled}
-          className={`rounded-lg p-2 text-xl transition-transform hover:scale-110 active:scale-95 ${
-            cooldown === emoji ? 'opacity-50' : ''
-          } ${disabled ? 'cursor-not-allowed opacity-30' : ''}`}
+          className={`rounded-full p-2 text-xl transition-all duration-200 hover:scale-125 hover:bg-white/10 active:scale-95 ${
+            cooldown === emoji ? "scale-90 opacity-50" : ""
+          } ${disabled ? "cursor-not-allowed opacity-30" : ""}`}
           aria-label={`React with ${emoji}`}
         >
           {emoji}
@@ -54,15 +57,19 @@ interface ReactionAnimationProps {
 
 /**
  * Reaction Animation
- * Floating emoji animation
+ * Enhanced floating emoji with rotation
  */
-export function ReactionAnimation({ emoji, id, onComplete }: ReactionAnimationProps) {
+export function ReactionAnimation({
+  emoji,
+  id,
+  onComplete,
+}: ReactionAnimationProps) {
   return (
     <span
-      className="pointer-events-none absolute animate-float text-2xl"
+      className="pointer-events-none absolute animate-funnel-float-reaction text-3xl"
       style={{
-        left: `${Math.random() * 80 + 10}%`,
-        bottom: '10%',
+        left: `${Math.random() * 70 + 15}%`,
+        bottom: "10%",
       }}
       onAnimationEnd={() => onComplete(id)}
     >
@@ -80,7 +87,10 @@ interface ReactionContainerProps {
  * Reaction Container
  * Container for floating reaction animations
  */
-export function ReactionContainer({ reactions, onReactionComplete }: ReactionContainerProps) {
+export function ReactionContainer({
+  reactions,
+  onReactionComplete,
+}: ReactionContainerProps) {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       {reactions.map((reaction) => (

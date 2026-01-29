@@ -23,6 +23,8 @@ export {
   getCompanyMember,
   checkCompanyRole,
   getCompanyMembers,
+  getCompanyMembersWithUsers,
+  updateMemberRole,
   getUserCompanies,
   removeCompanyMember,
   syncCompanyMembership,
@@ -140,3 +142,12 @@ export {
   REACTION_EMOJIS,
 } from './reactions';
 export type { ReactionEmoji } from './reactions';
+
+// Analytics functions
+export {
+  getCompanyStats,
+  getRegistrationTrends,
+  getWebinarPerformance,
+  getTrafficSources,
+} from './analytics';
+export type { DateRange, CompanyStats, RegistrationTrendPoint, WebinarPerformance, TrafficSource } from './analytics';

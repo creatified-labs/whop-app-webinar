@@ -462,6 +462,7 @@ export async function duplicateWebinar(webinarId: string): Promise<ApiResponse<W
       send_reminder_1h: webinar.send_reminder_1h,
       send_reminder_24h: webinar.send_reminder_24h,
       send_replay_email: webinar.send_replay_email,
+      registration_fields: webinar.registration_fields,
     });
 
     // Copy hosts

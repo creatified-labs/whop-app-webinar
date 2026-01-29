@@ -2,10 +2,22 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from '@whop/react/components';
+import {
+  Info,
+  Calendar,
+  Video,
+  MousePointer,
+  Settings2,
+  Mail,
+  Loader2,
+  Check,
+  ClipboardList,
+} from 'lucide-react';
+import { Card, Heading, Text, Button } from '@whop/react/components';
 import { COMMON_TIMEZONES } from '@/lib/utils/date';
 import { createWebinar, updateWebinar } from '@/app/actions/webinar';
-import type { Webinar, VideoType } from '@/types/database';
+import { RegistrationFieldsConfig, defaultFields } from './registration-fields-config';
+import type { Webinar, VideoType, RegistrationField } from '@/types/database';
 
 interface WebinarFormProps {
   companyId: string;
@@ -15,7 +27,7 @@ interface WebinarFormProps {
 
 /**
  * Webinar Form
- * Create/edit webinar form with all configuration options
+ * Modern multi-section form for creating/editing webinars
  */
 export function WebinarForm({ companyId, webinar, mode }: WebinarFormProps) {
   const router = useRouter();
@@ -56,6 +68,11 @@ export function WebinarForm({ companyId, webinar, mode }: WebinarFormProps) {
   const [sendReminder24h, setSendReminder24h] = useState(webinar?.send_reminder_24h ?? true);
   const [sendReplayEmail, setSendReplayEmail] = useState(webinar?.send_replay_email ?? true);
 
+  // Registration form fields
+  const [registrationFields, setRegistrationFields] = useState<RegistrationField[]>(
+    (webinar as any)?.registration_fields ?? defaultFields
+  );
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -92,6 +109,7 @@ export function WebinarForm({ companyId, webinar, mode }: WebinarFormProps) {
         send_reminder_1h: sendReminder1h,
         send_reminder_24h: sendReminder24h,
         send_replay_email: sendReplayEmail,
+        registration_fields: registrationFields,
       };
 
       let result;
@@ -110,83 +128,87 @@ export function WebinarForm({ companyId, webinar, mode }: WebinarFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {/* Basic Info */}
-      <section className="rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Basic Information</h2>
+      <FormSection
+        icon={Info}
+        title="Basic Information"
+        description="Set up the main details for your webinar"
+      >
         <div className="space-y-4">
-          <div>
-            <label htmlFor="title" className="block text-sm font-medium text-gray-700">
-              Title *
-            </label>
+          <FormField label="Title" required>
             <input
-              id="title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter webinar title"
+              placeholder="e.g., How to Build a Successful SaaS"
               required
-              className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-2 border border-gray-a6 bg-gray-1 px-3 py-2.5 text-2 text-gray-12 placeholder:text-gray-9 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="description" className="block text-sm font-medium text-gray-700">
-              Description
-            </label>
+          <FormField label="Description">
             <textarea
-              id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Describe your webinar..."
+              placeholder="Tell your audience what they'll learn..."
               rows={4}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full resize-none rounded-2 border border-gray-a6 bg-gray-1 px-3 py-2.5 text-2 text-gray-12 placeholder:text-gray-9 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="coverImage" className="block text-sm font-medium text-gray-700">
-              Cover Image URL
-            </label>
+          <FormField label="Cover Image URL">
             <input
-              id="coverImage"
               type="url"
               value={coverImageUrl}
               onChange={(e) => setCoverImageUrl(e.target.value)}
               placeholder="https://..."
-              className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-2 border border-gray-a6 bg-gray-1 px-3 py-2.5 text-2 text-gray-12 placeholder:text-gray-9 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
             />
-          </div>
+            <Text size="1" color="gray" className="mt-1.5">
+              Recommended size: 1920x1080 (16:9 aspect ratio)
+            </Text>
+          </FormField>
         </div>
-      </section>
+      </FormSection>
 
       {/* Schedule */}
-      <section className="rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Schedule</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="scheduledAt" className="block text-sm font-medium text-gray-700">
-              Date & Time *
-            </label>
+      <FormSection
+        icon={Calendar}
+        title="Schedule"
+        description="When will your webinar take place?"
+      >
+        <div className="grid gap-4 sm:grid-cols-3">
+          <FormField label="Date & Time" required>
             <input
-              id="scheduledAt"
               type="datetime-local"
               value={scheduledAt}
               onChange={(e) => setScheduledAt(e.target.value)}
               required
-              className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-2 border border-gray-a6 bg-gray-1 px-3 py-2.5 text-2 text-gray-12 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="timezone" className="block text-sm font-medium text-gray-700">
-              Timezone
-            </label>
+          <FormField label="Duration">
             <select
-              id="timezone"
+              value={durationMinutes}
+              onChange={(e) => setDurationMinutes(Number(e.target.value))}
+              className="w-full rounded-2 border border-gray-a6 bg-gray-1 px-3 py-2.5 text-2 text-gray-12 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
+            >
+              <option value={30}>30 minutes</option>
+              <option value={45}>45 minutes</option>
+              <option value={60}>1 hour</option>
+              <option value={90}>1.5 hours</option>
+              <option value={120}>2 hours</option>
+              <option value={180}>3 hours</option>
+            </select>
+          </FormField>
+
+          <FormField label="Timezone">
+            <select
               value={timezone}
               onChange={(e) => setTimezone(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-2 border border-gray-a6 bg-gray-1 px-3 py-2.5 text-2 text-gray-12 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
             >
               {COMMON_TIMEZONES.map((tz) => (
                 <option key={tz.value} value={tz.value}>
@@ -194,223 +216,299 @@ export function WebinarForm({ companyId, webinar, mode }: WebinarFormProps) {
                 </option>
               ))}
             </select>
-          </div>
-
-          <div>
-            <label htmlFor="duration" className="block text-sm font-medium text-gray-700">
-              Duration (minutes)
-            </label>
-            <input
-              id="duration"
-              type="number"
-              min={5}
-              max={480}
-              value={durationMinutes}
-              onChange={(e) => setDurationMinutes(Number(e.target.value))}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-            />
-          </div>
+          </FormField>
         </div>
-      </section>
+      </FormSection>
 
       {/* Video Settings */}
-      <section className="rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Video Settings</h2>
+      <FormSection
+        icon={Video}
+        title="Video Settings"
+        description="Configure your video source"
+      >
         <div className="space-y-4">
-          <div>
-            <label htmlFor="videoType" className="block text-sm font-medium text-gray-700">
-              Video Type
-            </label>
-            <select
-              id="videoType"
-              value={videoType}
-              onChange={(e) => setVideoType(e.target.value as VideoType)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-            >
-              <option value="youtube">YouTube</option>
-              <option value="vimeo">Vimeo</option>
-              <option value="hls">HLS Stream</option>
-              <option value="custom">Custom URL</option>
-            </select>
-          </div>
+          <FormField label="Video Platform">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {(['youtube', 'vimeo', 'hls', 'custom'] as VideoType[]).map((type) => (
+                <button
+                  key={type}
+                  type="button"
+                  onClick={() => setVideoType(type)}
+                  className={`rounded-2 border-2 px-4 py-2.5 text-2 font-medium transition-all ${
+                    videoType === type
+                      ? 'border-accent-9 bg-accent-a3 text-accent-11'
+                      : 'border-gray-a6 text-gray-11 hover:border-gray-a8'
+                  }`}
+                >
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </button>
+              ))}
+            </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="videoUrl" className="block text-sm font-medium text-gray-700">
-              Live Video URL
-            </label>
+          <FormField label="Live Video URL">
             <input
-              id="videoUrl"
               type="url"
               value={videoUrl}
               onChange={(e) => setVideoUrl(e.target.value)}
-              placeholder="https://..."
-              className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              placeholder={
+                videoType === 'youtube'
+                  ? 'https://youtube.com/watch?v=...'
+                  : videoType === 'vimeo'
+                  ? 'https://vimeo.com/...'
+                  : 'https://...'
+              }
+              className="w-full rounded-2 border border-gray-a6 bg-gray-1 px-3 py-2.5 text-2 text-gray-12 placeholder:text-gray-9 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="replayUrl" className="block text-sm font-medium text-gray-700">
-              Replay URL (optional)
-            </label>
+          <FormField label="Replay URL (optional)">
             <input
-              id="replayUrl"
               type="url"
               value={replayUrl}
               onChange={(e) => setReplayUrl(e.target.value)}
               placeholder="https://..."
-              className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-2 border border-gray-a6 bg-gray-1 px-3 py-2.5 text-2 text-gray-12 placeholder:text-gray-9 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
             />
-          </div>
+          </FormField>
         </div>
-      </section>
+      </FormSection>
 
       {/* CTA Settings */}
-      <section className="rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Call to Action</h2>
+      <FormSection
+        icon={MousePointer}
+        title="Call to Action"
+        description="Add a CTA button to drive conversions"
+      >
         <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label htmlFor="ctaText" className="block text-sm font-medium text-gray-700">
-              CTA Button Text
-            </label>
+          <FormField label="Button Text">
             <input
-              id="ctaText"
               type="text"
               value={ctaText}
               onChange={(e) => setCtaText(e.target.value)}
-              placeholder="Get Started"
-              className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              placeholder="e.g., Get Started, Buy Now, Learn More"
+              className="w-full rounded-2 border border-gray-a6 bg-gray-1 px-3 py-2.5 text-2 text-gray-12 placeholder:text-gray-9 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
             />
-          </div>
+          </FormField>
 
-          <div>
-            <label htmlFor="ctaUrl" className="block text-sm font-medium text-gray-700">
-              CTA URL
-            </label>
+          <FormField label="Button URL">
             <input
-              id="ctaUrl"
               type="url"
               value={ctaUrl}
               onChange={(e) => setCtaUrl(e.target.value)}
               placeholder="https://..."
-              className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full rounded-2 border border-gray-a6 bg-gray-1 px-3 py-2.5 text-2 text-gray-12 placeholder:text-gray-9 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
             />
-          </div>
+          </FormField>
         </div>
-      </section>
+      </FormSection>
+
+      {/* Registration Form */}
+      <FormSection
+        icon={ClipboardList}
+        title="Registration Form"
+        description="Configure what information to collect from registrants"
+      >
+        <RegistrationFieldsConfig
+          fields={registrationFields}
+          onChange={setRegistrationFields}
+        />
+      </FormSection>
 
       {/* Features */}
-      <section className="rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Features</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Toggle
-            label="Show Host Info"
+      <FormSection
+        icon={Settings2}
+        title="Features"
+        description="Enable or disable interactive features"
+      >
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <ToggleCard
+            label="Host Information"
+            description="Show host details on landing page"
             checked={showHostInfo}
             onChange={setShowHostInfo}
           />
-          <Toggle
+          <ToggleCard
             label="Live Chat"
+            description="Allow attendees to chat during webinar"
             checked={chatEnabled}
             onChange={setChatEnabled}
           />
-          <Toggle
+          <ToggleCard
             label="Q&A"
+            description="Let attendees submit questions"
             checked={qaEnabled}
             onChange={setQaEnabled}
           />
-          <Toggle
+          <ToggleCard
             label="Polls"
+            description="Create interactive polls"
             checked={pollsEnabled}
             onChange={setPollsEnabled}
           />
-          <Toggle
+          <ToggleCard
             label="Reactions"
+            description="Allow emoji reactions"
             checked={reactionsEnabled}
             onChange={setReactionsEnabled}
           />
         </div>
-      </section>
+      </FormSection>
 
       {/* Email Settings */}
-      <section className="rounded-xl border border-gray-200 bg-white p-6">
-        <h2 className="mb-4 text-lg font-semibold text-gray-900">Email Notifications</h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Toggle
-            label="Send Confirmation Email"
+      <FormSection
+        icon={Mail}
+        title="Email Notifications"
+        description="Automated emails for your registrants"
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <ToggleCard
+            label="Confirmation Email"
+            description="Send when someone registers"
             checked={sendConfirmation}
             onChange={setSendConfirmation}
           />
-          <Toggle
-            label="Send 24h Reminder"
+          <ToggleCard
+            label="24-Hour Reminder"
+            description="Send 24 hours before webinar"
             checked={sendReminder24h}
             onChange={setSendReminder24h}
           />
-          <Toggle
-            label="Send 1h Reminder"
+          <ToggleCard
+            label="1-Hour Reminder"
+            description="Send 1 hour before webinar"
             checked={sendReminder1h}
             onChange={setSendReminder1h}
           />
-          <Toggle
-            label="Send Replay Email"
+          <ToggleCard
+            label="Replay Available"
+            description="Send when replay is ready"
             checked={sendReplayEmail}
             onChange={setSendReplayEmail}
           />
         </div>
-      </section>
+      </FormSection>
 
       {/* Error */}
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-600">
+        <div className="rounded-2 border border-red-a6 bg-red-a3 p-4 text-2 text-red-11">
           {error}
         </div>
       )}
 
       {/* Actions */}
-      <div className="flex justify-end gap-3">
+      <div className="flex items-center justify-end gap-3 border-t border-gray-a4 pt-6">
         <Button
           type="button"
           variant="soft"
+          color="gray"
+          size="2"
           onClick={() => router.back()}
           disabled={isPending}
         >
           Cancel
         </Button>
-        <Button type="submit" variant="solid" disabled={isPending}>
-          {isPending
-            ? 'Saving...'
-            : mode === 'create'
-            ? 'Create Webinar'
-            : 'Save Changes'}
+        <Button
+          type="submit"
+          variant="solid"
+          size="2"
+          disabled={isPending}
+        >
+          {isPending ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : mode === 'create' ? (
+            'Create Webinar'
+          ) : (
+            'Save Changes'
+          )}
         </Button>
       </div>
     </form>
   );
 }
 
-interface ToggleProps {
+interface FormSectionProps {
+  icon: typeof Info;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}
+
+function FormSection({ icon: Icon, title, description, children }: FormSectionProps) {
+  return (
+    <Card size="2">
+      <div className="mb-4 flex items-start gap-3">
+        <div className="rounded-2 bg-gray-a3 p-2">
+          <Icon className="h-5 w-5 text-gray-11" />
+        </div>
+        <div>
+          <Heading size="4" weight="semi-bold">
+            {title}
+          </Heading>
+          <Text size="2" color="gray">
+            {description}
+          </Text>
+        </div>
+      </div>
+      {children}
+    </Card>
+  );
+}
+
+interface FormFieldProps {
   label: string;
+  required?: boolean;
+  children: React.ReactNode;
+}
+
+function FormField({ label, required, children }: FormFieldProps) {
+  return (
+    <div>
+      <label className="mb-1.5 block text-2 font-medium text-gray-12">
+        {label}
+        {required && <span className="ml-1 text-red-11">*</span>}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+interface ToggleCardProps {
+  label: string;
+  description: string;
   checked: boolean;
   onChange: (checked: boolean) => void;
 }
 
-function Toggle({ label, checked, onChange }: ToggleProps) {
+function ToggleCard({ label, description, checked, onChange }: ToggleCardProps) {
   return (
-    <label className="flex cursor-pointer items-center gap-3">
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        onClick={() => onChange(!checked)}
-        className={`relative h-6 w-11 rounded-full transition-colors ${
-          checked ? 'bg-blue-600' : 'bg-gray-200'
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      className={`flex items-start gap-3 rounded-2 border-2 p-3 text-left transition-all ${
+        checked
+          ? 'border-accent-9 bg-accent-a3'
+          : 'border-gray-a6 hover:border-gray-a8'
+      }`}
+    >
+      <div
+        className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-1 transition-colors ${
+          checked ? 'bg-accent-9' : 'bg-gray-a5'
         }`}
       >
-        <span
-          className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
-            checked ? 'translate-x-5' : 'translate-x-0'
-          }`}
-        />
-      </button>
-      <span className="text-sm text-gray-700">{label}</span>
-    </label>
+        {checked && <Check className="h-3 w-3 text-white" />}
+      </div>
+      <div>
+        <Text as="p" size="2" weight="medium" className={checked ? 'text-accent-11' : ''}>
+          {label}
+        </Text>
+        <Text as="p" size="1" color="gray">
+          {description}
+        </Text>
+      </div>
+    </button>
   );
 }

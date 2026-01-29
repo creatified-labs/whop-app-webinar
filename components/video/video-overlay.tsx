@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
-import { CountdownTimer } from '@/components/funnel/countdown-timer';
+import { Loader2, Clock, Video } from "lucide-react";
+import { CountdownTimer } from "@/components/funnel/countdown-timer";
 
 interface VideoOverlayProps {
-  variant: 'starting-soon' | 'ended' | 'loading';
+  variant: "starting-soon" | "ended" | "loading";
   startTime?: string;
   onCountdownComplete?: () => void;
   message?: string;
@@ -11,7 +12,7 @@ interface VideoOverlayProps {
 
 /**
  * Video Overlay
- * Overlays for various video states (starting soon, ended, loading)
+ * Premium overlays with glassmorphism for video states
  */
 export function VideoOverlay({
   variant,
@@ -20,17 +21,30 @@ export function VideoOverlay({
   message,
 }: VideoOverlayProps) {
   return (
-    <div className="flex aspect-video items-center justify-center bg-gray-900 text-white">
-      {variant === 'loading' && (
-        <div className="text-center">
-          <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-white border-t-transparent" />
-          <p className="mt-4 text-gray-300">{message || 'Loading...'}</p>
+    <div className="flex aspect-video items-center justify-center bg-gradient-to-br from-zinc-900 via-zinc-900 to-zinc-800">
+      {/* Background decoration */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -left-20 -top-20 h-60 w-60 rounded-full bg-indigo-500/10 blur-[80px]" />
+        <div className="absolute -bottom-20 -right-20 h-60 w-60 rounded-full bg-purple-500/10 blur-[80px]" />
+      </div>
+
+      {variant === "loading" && (
+        <div className="relative z-10 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-800/50 ring-1 ring-white/10">
+            <Loader2 className="h-8 w-8 animate-spin text-indigo-400" />
+          </div>
+          <p className="text-funnel-text-secondary">{message || "Loading..."}</p>
         </div>
       )}
 
-      {variant === 'starting-soon' && startTime && (
-        <div className="text-center">
-          <p className="mb-4 text-lg font-medium text-gray-300">Starting in</p>
+      {variant === "starting-soon" && startTime && (
+        <div className="relative z-10 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-indigo-500/10 ring-1 ring-indigo-500/30">
+            <Clock className="h-8 w-8 text-indigo-400" />
+          </div>
+          <p className="mb-6 text-lg font-medium text-funnel-text-secondary">
+            Starting in
+          </p>
           <CountdownTimer
             targetDate={startTime}
             onComplete={onCountdownComplete}
@@ -38,11 +52,16 @@ export function VideoOverlay({
         </div>
       )}
 
-      {variant === 'ended' && (
-        <div className="text-center">
-          <p className="text-xl font-semibold">Webinar Ended</p>
-          <p className="mt-2 text-gray-400">
-            {message || 'Thank you for watching!'}
+      {variant === "ended" && (
+        <div className="relative z-10 text-center">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-zinc-800/50 ring-1 ring-white/10">
+            <Video className="h-8 w-8 text-funnel-text-muted" />
+          </div>
+          <p className="text-xl font-semibold text-funnel-text-primary">
+            Webinar Ended
+          </p>
+          <p className="mt-2 text-funnel-text-muted">
+            {message || "Thank you for watching!"}
           </p>
         </div>
       )}
@@ -56,18 +75,22 @@ interface LiveIndicatorProps {
 
 /**
  * Live Indicator
- * Badge showing live status and viewer count
+ * Premium badge with pulsing animation
  */
 export function LiveIndicator({ viewerCount }: LiveIndicatorProps) {
   return (
-    <div className="flex items-center gap-4">
-      <span className="inline-flex items-center gap-2 rounded-full bg-red-600 px-3 py-1 text-sm font-medium text-white">
-        <span className="h-2 w-2 animate-pulse rounded-full bg-white" />
+    <div className="flex items-center gap-3">
+      <span className="inline-flex items-center gap-2 rounded-full bg-red-500/10 px-3 py-1.5 text-sm font-semibold text-red-400 ring-1 ring-red-500/30">
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+        </span>
         LIVE
       </span>
+
       {viewerCount !== undefined && viewerCount > 0 && (
-        <span className="text-sm text-gray-600">
-          {viewerCount.toLocaleString()} {viewerCount === 1 ? 'viewer' : 'viewers'}
+        <span className="text-sm text-funnel-text-secondary">
+          {viewerCount.toLocaleString()} {viewerCount === 1 ? "viewer" : "viewers"}
         </span>
       )}
     </div>

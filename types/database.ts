@@ -21,6 +21,17 @@ export type DiscountType = 'percentage' | 'fixed';
 
 export type EmailType = 'confirmation' | 'reminder_1h' | 'reminder_24h' | 'replay' | 'custom';
 
+export type RegistrationFieldType = 'name' | 'email' | 'phone' | 'text' | 'textarea' | 'select';
+
+export interface RegistrationField {
+  id: string;
+  type: RegistrationFieldType;
+  label: string;
+  required: boolean;
+  placeholder?: string;
+  options?: string[];
+}
+
 export type EmailStatus = 'pending' | 'sent' | 'failed';
 
 // ============================================
@@ -95,6 +106,9 @@ export interface Webinar {
   send_reminder_24h: boolean;
   send_replay_email: boolean;
 
+  // Registration Form Configuration
+  registration_fields: RegistrationField[];
+
   // Metadata
   created_at: string;
   updated_at: string;
@@ -122,6 +136,10 @@ export interface Registration {
   // Registration Info
   email: string;
   name: string | null;
+  phone: string | null;
+
+  // Custom field answers (keyed by field ID)
+  custom_fields: Record<string, string> | null;
 
   // Optional Whop user link
   user_id: string | null;
@@ -332,7 +350,10 @@ export type WebinarInsert = Omit<Webinar, 'id' | 'created_at' | 'updated_at'>;
 
 export type WebinarHostInsert = Omit<WebinarHost, 'id' | 'created_at'>;
 
-export type RegistrationInsert = Omit<Registration, 'id' | 'created_at' | 'attended' | 'attended_at' | 'watched_replay' | 'watched_replay_at' | 'confirmation_sent' | 'reminder_1h_sent' | 'reminder_24h_sent' | 'replay_sent'>;
+export type RegistrationInsert = Omit<Registration, 'id' | 'created_at' | 'attended' | 'attended_at' | 'watched_replay' | 'watched_replay_at' | 'confirmation_sent' | 'reminder_1h_sent' | 'reminder_24h_sent' | 'replay_sent'> & {
+  phone?: string | null;
+  custom_fields?: Record<string, string> | null;
+};
 
 export type ChatMessageInsert = Omit<ChatMessage, 'id' | 'created_at' | 'is_pinned' | 'is_hidden'>;
 

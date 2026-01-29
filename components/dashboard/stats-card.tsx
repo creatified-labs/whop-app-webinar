@@ -1,4 +1,5 @@
 import { type LucideIcon } from 'lucide-react';
+import { Card, Heading, Text } from '@whop/react/components';
 import { formatNumber } from '@/lib/utils';
 
 interface StatsCardProps {
@@ -10,11 +11,35 @@ interface StatsCardProps {
     value: number;
     isPositive: boolean;
   };
+  color?: 'gray' | 'accent' | 'green' | 'orange' | 'red';
 }
+
+const colorStyles = {
+  gray: {
+    iconBg: 'bg-gray-a3',
+    iconColor: 'text-gray-11',
+  },
+  accent: {
+    iconBg: 'bg-accent-a3',
+    iconColor: 'text-accent-11',
+  },
+  green: {
+    iconBg: 'bg-green-a3',
+    iconColor: 'text-green-11',
+  },
+  orange: {
+    iconBg: 'bg-orange-a3',
+    iconColor: 'text-orange-11',
+  },
+  red: {
+    iconBg: 'bg-red-a3',
+    iconColor: 'text-red-11',
+  },
+};
 
 /**
  * Stats Card
- * Display a single metric with optional trend indicator
+ * Modern stats card using Frosted UI
  */
 export function StatsCard({
   title,
@@ -22,34 +47,44 @@ export function StatsCard({
   icon: Icon,
   description,
   trend,
+  color = 'gray',
 }: StatsCardProps) {
+  const styles = colorStyles[color];
+
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6">
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-500">{title}</span>
-        <div className="rounded-lg bg-blue-50 p-2">
-          <Icon className="h-5 w-5 text-blue-600" />
+    <Card size="2">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <Text size="2" color="gray" weight="medium">
+            {title}
+          </Text>
+          <div className="mt-2 flex items-baseline gap-2">
+            <Heading size="6" weight="bold">
+              {formatNumber(value)}
+            </Heading>
+            {trend && (
+              <Text
+                size="1"
+                weight="medium"
+                color={trend.isPositive ? 'green' : 'red'}
+              >
+                {trend.isPositive ? '+' : ''}
+                {trend.value}%
+              </Text>
+            )}
+          </div>
+          {description && (
+            <Text size="1" color="gray" className="mt-1">
+              {description}
+            </Text>
+          )}
+        </div>
+
+        <div className={`rounded-3 p-2.5 ${styles.iconBg}`}>
+          <Icon className={`h-5 w-5 ${styles.iconColor}`} />
         </div>
       </div>
-      <div className="mt-4">
-        <span className="text-3xl font-bold text-gray-900">
-          {formatNumber(value)}
-        </span>
-        {trend && (
-          <span
-            className={`ml-2 text-sm font-medium ${
-              trend.isPositive ? 'text-green-600' : 'text-red-600'
-            }`}
-          >
-            {trend.isPositive ? '+' : '-'}
-            {Math.abs(trend.value)}%
-          </span>
-        )}
-      </div>
-      {description && (
-        <p className="mt-1 text-sm text-gray-500">{description}</p>
-      )}
-    </div>
+    </Card>
   );
 }
 
@@ -59,7 +94,7 @@ interface StatsGridProps {
 
 /**
  * Stats Grid
- * Grid container for stats cards
+ * Responsive grid for stats cards
  */
 export function StatsGrid({ children }: StatsGridProps) {
   return (

@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { MessageCircle, HelpCircle, BarChart3 } from 'lucide-react';
-import { ChatContainer } from '@/components/chat';
-import { QAContainer } from '@/components/qa';
-import { PollsContainer } from '@/components/polls';
-import type { ChatMessage, QAQuestion } from '@/types/database';
-import type { PollWithResults } from '@/types';
+import { useState, useRef, useEffect } from "react";
+import { MessageCircle, HelpCircle, BarChart3 } from "lucide-react";
+import { ChatContainer } from "@/components/chat";
+import { QAContainer } from "@/components/qa";
+import { PollsContainer } from "@/components/polls";
+import type { ChatMessage, QAQuestion } from "@/types/database";
+import type { PollWithResults } from "@/types";
 
-type TabId = 'chat' | 'qa' | 'polls';
+type TabId = "chat" | "qa" | "polls";
 
 interface Tab {
   id: TabId;
@@ -17,9 +17,9 @@ interface Tab {
 }
 
 const TABS: Tab[] = [
-  { id: 'chat', label: 'Chat', icon: MessageCircle },
-  { id: 'qa', label: 'Q&A', icon: HelpCircle },
-  { id: 'polls', label: 'Polls', icon: BarChart3 },
+  { id: "chat", label: "Chat", icon: MessageCircle },
+  { id: "qa", label: "Q&A", icon: HelpCircle },
+  { id: "polls", label: "Polls", icon: BarChart3 },
 ];
 
 interface InteractionPanelProps {
@@ -38,12 +38,12 @@ interface InteractionPanelProps {
 
 /**
  * Interaction Panel
- * Right-side panel with Chat, Q&A, and Polls tabs
+ * Premium tabbed panel with animated underline indicator
  */
 export function InteractionPanel({
   webinarId,
   registrationId,
-  registrationName = 'Anonymous',
+  registrationName = "Anonymous",
   chatEnabled = true,
   qaEnabled = true,
   pollsEnabled = true,
@@ -55,45 +55,83 @@ export function InteractionPanel({
 }: InteractionPanelProps) {
   // Filter tabs based on enabled features
   const enabledTabs = TABS.filter((tab) => {
-    if (tab.id === 'chat') return chatEnabled;
-    if (tab.id === 'qa') return qaEnabled;
-    if (tab.id === 'polls') return pollsEnabled;
+    if (tab.id === "chat") return chatEnabled;
+    if (tab.id === "qa") return qaEnabled;
+    if (tab.id === "polls") return pollsEnabled;
     return true;
   });
 
-  const [activeTab, setActiveTab] = useState<TabId>(enabledTabs[0]?.id || 'chat');
+  const [activeTab, setActiveTab] = useState<TabId>(
+    enabledTabs[0]?.id || "chat"
+  );
+  const [indicatorStyle, setIndicatorStyle] = useState({ left: 0, width: 0 });
+  const tabRefs = useRef<Map<TabId, HTMLButtonElement>>(new Map());
+
+  // Update indicator position when tab changes
+  useEffect(() => {
+    const activeElement = tabRefs.current.get(activeTab);
+    if (activeElement) {
+      setIndicatorStyle({
+        left: activeElement.offsetLeft,
+        width: activeElement.offsetWidth,
+      });
+    }
+  }, [activeTab, enabledTabs.length]);
 
   if (enabledTabs.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center text-gray-500">
+      <div className="flex h-full items-center justify-center text-funnel-text-muted">
         <p>Interaction features are disabled for this webinar</p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-full flex-col bg-white">
-      {/* Tabs */}
-      <div className="flex border-b border-gray-200">
-        {enabledTabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex flex-1 items-center justify-center gap-2 px-4 py-3 text-sm font-medium transition-colors ${
-              activeTab === tab.id
-                ? 'border-b-2 border-blue-500 text-blue-600'
-                : 'text-gray-500 hover:text-gray-700'
-            }`}
-          >
-            <tab.icon className="h-4 w-4" />
-            {tab.label}
-          </button>
-        ))}
+    <div className="flex h-full flex-col bg-funnel-bg-card/50">
+      {/* Tabs with Animated Indicator */}
+      <div className="relative border-b border-funnel-border/50">
+        <div className="flex">
+          {enabledTabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+
+            return (
+              <button
+                key={tab.id}
+                ref={(el) => {
+                  if (el) tabRefs.current.set(tab.id, el);
+                }}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex flex-1 items-center justify-center gap-2 px-4 py-3.5 text-sm font-medium transition-colors ${
+                  isActive
+                    ? "text-indigo-400"
+                    : "text-funnel-text-muted hover:text-funnel-text-secondary"
+                }`}
+              >
+                <Icon
+                  className={`h-4 w-4 transition-transform ${
+                    isActive ? "scale-110" : ""
+                  }`}
+                />
+                <span className="hidden sm:inline">{tab.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Animated Underline Indicator */}
+        <div
+          className="funnel-tab-indicator"
+          style={{
+            left: indicatorStyle.left,
+            width: indicatorStyle.width,
+          }}
+        />
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 overflow-hidden">
-        {activeTab === 'chat' && chatEnabled && (
+      <div className="funnel-scrollbar flex-1 overflow-hidden">
+        {activeTab === "chat" && chatEnabled && (
           <ChatContainer
             webinarId={webinarId}
             registrationId={registrationId}
@@ -101,7 +139,7 @@ export function InteractionPanel({
             initialMessages={initialChatMessages}
           />
         )}
-        {activeTab === 'qa' && qaEnabled && (
+        {activeTab === "qa" && qaEnabled && (
           <QAContainer
             webinarId={webinarId}
             registrationId={registrationId}
@@ -109,7 +147,7 @@ export function InteractionPanel({
             initialUpvotedIds={initialUpvotedQuestionIds}
           />
         )}
-        {activeTab === 'polls' && pollsEnabled && (
+        {activeTab === "polls" && pollsEnabled && (
           <PollsContainer
             webinarId={webinarId}
             registrationId={registrationId}

@@ -1,8 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useCallback, KeyboardEvent } from 'react';
-import { Send } from 'lucide-react';
-import { Button } from '@whop/react/components';
+import { useState, useCallback, KeyboardEvent } from "react";
+import { Send, Loader2 } from "lucide-react";
 
 interface ChatInputProps {
   onSend: (message: string) => Promise<void>;
@@ -12,14 +11,14 @@ interface ChatInputProps {
 
 /**
  * ChatInput Component
- * Input field for sending chat messages
+ * Premium input with gradient send button
  */
 export function ChatInput({
   onSend,
   disabled = false,
-  placeholder = 'Type a message...',
+  placeholder = "Type a message...",
 }: ChatInputProps) {
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
 
   const handleSend = useCallback(async () => {
@@ -28,23 +27,25 @@ export function ChatInput({
     setIsSending(true);
     try {
       await onSend(message.trim());
-      setMessage('');
+      setMessage("");
     } catch (err) {
-      console.error('Failed to send message:', err);
+      console.error("Failed to send message:", err);
     } finally {
       setIsSending(false);
     }
   }, [message, onSend, isSending, disabled]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
 
+  const canSend = message.trim() && !isSending && !disabled;
+
   return (
-    <div className="flex items-center gap-2 border-t border-gray-200 bg-white p-3">
+    <div className="flex items-center gap-2 border-t border-funnel-border/50 bg-funnel-bg-card/80 p-3 backdrop-blur-sm">
       <input
         type="text"
         value={message}
@@ -52,17 +53,25 @@ export function ChatInput({
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         disabled={disabled || isSending}
-        className="flex-1 rounded-lg border border-gray-200 px-3 py-2 text-sm placeholder-gray-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-50 disabled:text-gray-500"
+        className="flex-1 rounded-funnel-lg border border-funnel-border bg-funnel-bg-elevated/50 px-4 py-2.5 text-sm text-funnel-text-primary placeholder-funnel-text-muted transition-all focus:border-indigo-500/50 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
         maxLength={500}
       />
-      <Button
-        variant="solid"
+      <button
+        type="button"
         onClick={handleSend}
-        disabled={!message.trim() || isSending || disabled}
-        className="shrink-0"
+        disabled={!canSend}
+        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-funnel-lg transition-all duration-200 ${
+          canSend
+            ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-md hover:shadow-funnel-glow"
+            : "bg-zinc-800 text-funnel-text-muted"
+        }`}
       >
-        <Send className="h-4 w-4" />
-      </Button>
+        {isSending ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <Send className="h-4 w-4" />
+        )}
+      </button>
     </div>
   );
 }

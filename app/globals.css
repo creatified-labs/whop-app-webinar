@@ -8,24 +8,332 @@
 /* biome-ignore lint/suspicious/noUnknownAtRules: this rule is imported from whop */
 @config '../tailwind.config.ts';
 
-body {
-	background: var(--background);
-	color: var(--foreground);
-	font-family: Arial, Helvetica, sans-serif;
+/* ===== Funnel Design System CSS Variables ===== */
+
+/* Light mode (default) */
+:root {
+  /* Backgrounds */
+  --funnel-bg-primary: 250 250 250;
+  --funnel-bg-card: 255 255 255;
+  --funnel-bg-elevated: 255 255 255;
+
+  /* Text colors */
+  --funnel-text-primary: 17 24 39;
+  --funnel-text-secondary: 107 114 128;
+  --funnel-text-muted: 156 163 175;
+
+  /* Borders */
+  --funnel-border-default: 229 231 235;
+  --funnel-border-subtle: 243 244 246;
+
+  /* Accent colors */
+  --funnel-accent: 99 102 241;
+  --funnel-accent-hover: 79 70 229;
+  --funnel-accent-light: 199 210 254;
 }
 
-/* Reaction float animation */
+/* Dark mode */
+.dark {
+  /* Backgrounds */
+  --funnel-bg-primary: 9 9 11;
+  --funnel-bg-card: 24 24 27;
+  --funnel-bg-elevated: 39 39 42;
+
+  /* Text colors */
+  --funnel-text-primary: 250 250 250;
+  --funnel-text-secondary: 161 161 170;
+  --funnel-text-muted: 113 113 122;
+
+  /* Borders */
+  --funnel-border-default: 63 63 70;
+  --funnel-border-subtle: 39 39 42;
+
+  /* Accent colors - slightly lighter for dark mode */
+  --funnel-accent: 129 140 248;
+  --funnel-accent-hover: 165 180 252;
+  --funnel-accent-light: 55 48 163;
+}
+
+/* ===== Base styles ===== */
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ===== Funnel-specific component styles ===== */
+
+/* Glassmorphism card utility */
+.funnel-glass {
+  background: rgb(var(--funnel-bg-card) / 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgb(var(--funnel-border-default) / 0.5);
+}
+
+.dark .funnel-glass {
+  background: rgb(var(--funnel-bg-card) / 0.5);
+  border-color: rgb(255 255 255 / 0.1);
+}
+
+/* Gradient text utility */
+.funnel-gradient-text {
+  background: linear-gradient(
+    135deg,
+    rgb(var(--funnel-accent)) 0%,
+    rgb(139 92 246) 50%,
+    rgb(168 85 247) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Gradient border utility */
+.funnel-gradient-border {
+  position: relative;
+}
+
+.funnel-gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    rgb(var(--funnel-accent)) 0%,
+    rgb(139 92 246) 50%,
+    rgb(168 85 247) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Shimmer effect for buttons */
+.funnel-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.funnel-shimmer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.2) 50%,
+    transparent 100%
+  );
+  animation: funnel-shimmer 2s linear infinite;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.funnel-shimmer:hover::after {
+  opacity: 1;
+}
+
+/* Glow effect utility */
+.funnel-glow {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  transition: box-shadow 0.3s ease;
+}
+
+.funnel-glow:hover {
+  box-shadow: 0 0 40px rgba(99, 102, 241, 0.5);
+}
+
+/* Floating input label styles */
+.funnel-floating-input {
+  position: relative;
+}
+
+.funnel-floating-input input {
+  padding-top: 1.5rem;
+  padding-bottom: 0.625rem;
+}
+
+.funnel-floating-input input::placeholder {
+  color: transparent;
+}
+
+.funnel-floating-input label {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgb(var(--funnel-text-muted));
+  font-size: 1rem;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+
+.funnel-floating-input input:focus ~ label,
+.funnel-floating-input input:not(:placeholder-shown) ~ label {
+  top: 0.5rem;
+  transform: translateY(0);
+  font-size: 0.75rem;
+  color: rgb(var(--funnel-accent));
+}
+
+/* Mesh gradient background */
+.funnel-mesh-bg {
+  background-image: radial-gradient(
+      at 40% 20%,
+      rgba(99, 102, 241, 0.15) 0px,
+      transparent 50%
+    ),
+    radial-gradient(at 80% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, rgba(168, 85, 247, 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, rgba(139, 92, 246, 0.1) 0px, transparent 50%);
+}
+
+.dark .funnel-mesh-bg {
+  background-image: radial-gradient(
+      at 40% 20%,
+      rgba(99, 102, 241, 0.2) 0px,
+      transparent 50%
+    ),
+    radial-gradient(at 80% 0%, rgba(139, 92, 246, 0.2) 0px, transparent 50%),
+    radial-gradient(at 0% 50%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+    radial-gradient(at 80% 50%, rgba(168, 85, 247, 0.15) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+    radial-gradient(at 80% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+}
+
+/* Premium button base */
+.funnel-btn-primary {
+  background: linear-gradient(135deg, rgb(99 102 241) 0%, rgb(139 92 246) 100%);
+  color: white;
+  font-weight: 600;
+  border-radius: 0.75rem;
+  padding: 0.875rem 1.5rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+}
+
+.funnel-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+}
+
+.funnel-btn-primary:active {
+  transform: translateY(0);
+}
+
+/* Secondary button */
+.funnel-btn-secondary {
+  background: rgb(var(--funnel-bg-elevated));
+  color: rgb(var(--funnel-text-primary));
+  font-weight: 500;
+  border-radius: 0.75rem;
+  padding: 0.875rem 1.5rem;
+  border: 1px solid rgb(var(--funnel-border-default));
+  transition: all 0.2s ease;
+}
+
+.funnel-btn-secondary:hover {
+  background: rgb(var(--funnel-bg-card));
+  border-color: rgb(var(--funnel-accent));
+}
+
+/* ===== Legacy animation (keeping for compatibility) ===== */
+
 @keyframes float-up {
-	0% {
-		opacity: 1;
-		transform: translateY(0) scale(1);
-	}
-	100% {
-		opacity: 0;
-		transform: translateY(-200px) scale(1.5);
-	}
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-200px) scale(1.5);
+  }
 }
 
 .animate-float {
-	animation: float-up 2s ease-out forwards;
+  animation: float-up 2s ease-out forwards;
+}
+
+/* ===== Additional funnel keyframe animations ===== */
+
+@keyframes funnel-shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes funnel-checkmark-draw {
+  0% {
+    stroke-dashoffset: 100;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes funnel-success-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(34, 197, 94, 0.6);
+  }
+}
+
+/* Success checkmark animation */
+.funnel-checkmark-animated {
+  stroke-dasharray: 100;
+  stroke-dashoffset: 100;
+  animation: funnel-checkmark-draw 0.6s ease-out 0.3s forwards;
+}
+
+.funnel-success-glow {
+  animation: funnel-success-glow 2s ease-in-out infinite;
+}
+
+/* Tab underline indicator */
+.funnel-tab-indicator {
+  position: absolute;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, rgb(99 102 241), rgb(139 92 246));
+  border-radius: 1px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Scrollbar styling for funnel */
+.funnel-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.funnel-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.funnel-scrollbar::-webkit-scrollbar-thumb {
+  background: rgb(var(--funnel-border-default));
+  border-radius: 3px;
+}
+
+.funnel-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--funnel-text-muted));
 }

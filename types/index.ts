@@ -35,6 +35,7 @@ import type {
   Poll,
   DiscountCode,
   Company,
+  RegistrationField,
 } from './database';
 
 export interface WebinarWithHosts extends Webinar {
@@ -64,6 +65,7 @@ export interface WebinarPublicView {
   qa_enabled: boolean;
   polls_enabled: boolean;
   reactions_enabled: boolean;
+  registration_fields: RegistrationField[];
   hosts: WebinarHost[];
   company: {
     name: string;
@@ -184,15 +186,18 @@ export interface WebinarFormData {
   send_reminder_1h: boolean;
   send_reminder_24h: boolean;
   send_replay_email: boolean;
+  registration_fields?: RegistrationField[];
 }
 
 export interface RegistrationFormData {
   email: string;
   name?: string;
+  phone?: string;
   source?: string;
   utm_campaign?: string;
   utm_medium?: string;
   utm_content?: string;
+  custom_fields?: Record<string, string>;
 }
 
 export interface HostFormData {

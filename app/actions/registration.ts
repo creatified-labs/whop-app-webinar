@@ -72,11 +72,13 @@ export async function registerForWebinar(
     const registration = await createRegistrationData(webinar.id, {
       email: validatedData.email.toLowerCase(),
       name: validatedData.name || null,
+      phone: validatedData.phone || null,
       user_id: null, // Public registration - no user linked
       source: validatedData.source || null,
       utm_campaign: validatedData.utm_campaign || null,
       utm_medium: validatedData.utm_medium || null,
       utm_content: validatedData.utm_content || null,
+      custom_fields: validatedData.custom_fields || null,
     });
 
     // Queue confirmation and reminder emails
@@ -313,11 +315,13 @@ export async function addManualRegistration(
     const registration = await createRegistrationData(webinarId, {
       email: validatedData.email.toLowerCase(),
       name: validatedData.name || null,
+      phone: null,
       user_id: null,
       source: 'manual',
       utm_campaign: null,
       utm_medium: null,
       utm_content: null,
+      custom_fields: null,
     });
 
     revalidatePath(`/dashboard/[companyId]/webinars/${webinarId}/registrations`);
@@ -343,6 +347,7 @@ export async function exportRegistrations(webinarId: string): Promise<ApiRespons
     const headers = [
       'Email',
       'Name',
+      'Phone',
       'Registered At',
       'Attended',
       'Attended At',
@@ -351,11 +356,13 @@ export async function exportRegistrations(webinarId: string): Promise<ApiRespons
       'UTM Campaign',
       'UTM Medium',
       'UTM Content',
+      'Custom Fields',
     ];
 
     const rows = registrations.map((r) => [
       r.email,
       r.name || '',
+      r.phone || '',
       r.created_at,
       r.attended ? 'Yes' : 'No',
       r.attended_at || '',
@@ -364,6 +371,7 @@ export async function exportRegistrations(webinarId: string): Promise<ApiRespons
       r.utm_campaign || '',
       r.utm_medium || '',
       r.utm_content || '',
+      r.custom_fields ? JSON.stringify(r.custom_fields) : '',
     ]);
 
     const csv = [

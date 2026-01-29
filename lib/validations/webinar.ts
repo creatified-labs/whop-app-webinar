@@ -23,6 +23,17 @@ export const webinarStatusSchema = z.enum(['draft', 'scheduled', 'live', 'ended'
 
 export const videoTypeSchema = z.enum(['youtube', 'vimeo', 'hls', 'custom']);
 
+export const registrationFieldTypeSchema = z.enum(['name', 'email', 'phone', 'text', 'textarea', 'select']);
+
+export const registrationFieldSchema = z.object({
+  id: z.string(),
+  type: registrationFieldTypeSchema,
+  label: z.string().min(1).max(200),
+  required: z.boolean(),
+  placeholder: z.string().max(200).optional(),
+  options: z.array(z.string().max(200)).optional(),
+});
+
 export const createWebinarSchema = z.object({
   title: z
     .string()
@@ -77,6 +88,11 @@ export const createWebinarSchema = z.object({
   send_reminder_24h: z.boolean().default(true),
 
   send_replay_email: z.boolean().default(true),
+
+  registration_fields: z.array(registrationFieldSchema).default([
+    { id: 'name', type: 'name', label: 'Full Name', required: true },
+    { id: 'email', type: 'email', label: 'Email Address', required: true },
+  ]),
 });
 
 export const updateWebinarSchema = createWebinarSchema.partial().extend({
@@ -99,6 +115,11 @@ export const registrationSchema = z.object({
     .max(100, 'Name must be less than 100 characters')
     .optional(),
 
+  phone: z
+    .string()
+    .max(50, 'Phone number must be less than 50 characters')
+    .optional(),
+
   source: z.string().optional(),
 
   utm_campaign: z.string().optional(),
@@ -106,6 +127,8 @@ export const registrationSchema = z.object({
   utm_medium: z.string().optional(),
 
   utm_content: z.string().optional(),
+
+  custom_fields: z.record(z.string(), z.string()).optional(),
 });
 
 export type RegistrationInput = z.infer<typeof registrationSchema>;

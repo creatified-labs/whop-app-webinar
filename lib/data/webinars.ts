@@ -170,6 +170,7 @@ export async function getWebinarPublicView(slug: string): Promise<WebinarPublicV
       qa_enabled,
       polls_enabled,
       reactions_enabled,
+      registration_fields,
       hosts:webinar_hosts(id, name, title, bio, image_url, display_order),
       company:companies(name, image_url),
       registrations:registrations(count)
@@ -247,6 +248,7 @@ export async function getCompanyWebinars(
   companyId: string,
   options?: {
     status?: WebinarStatus | WebinarStatus[];
+    search?: string;
     limit?: number;
     offset?: number;
   }
@@ -265,6 +267,10 @@ export async function getCompanyWebinars(
   if (options?.status) {
     const statuses = Array.isArray(options.status) ? options.status : [options.status];
     query = query.in('status', statuses);
+  }
+
+  if (options?.search) {
+    query = query.ilike('title', `%${options.search}%`);
   }
 
   if (options?.limit) {
