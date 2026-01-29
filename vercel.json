@@ -1,12 +1,2 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/send-emails",
-      "schedule": "* * * * *"
-    },
-    {
-      "path": "/api/cron/update-webinar-status",
-      "schedule": "* * * * *"
-    }
-  ]
 }
