@@ -1,10 +1,9 @@
 /**
  * Email Sending Functions
- * Functions to send various types of webinar emails
+ * Direct email sending using Resend (no queue/cron needed)
  */
 
 import { resend, DEFAULT_FROM_EMAIL, isEmailEnabled } from './resend';
-import { queueEmail, getEmailsToSend, markEmailSent, markEmailFailed } from './queue';
 import {
   renderConfirmationEmail,
   renderReminderEmail,
@@ -13,14 +12,224 @@ import {
   getReplaySubject,
 } from './templates';
 import { formatInTimezone } from '@/lib/utils/date';
-import type { EmailQueueItem, EmailType } from '@/types/database';
 
 // ============================================
-// Queue Functions (Schedule emails)
+// Direct Send Functions
 // ============================================
 
 /**
- * Queue a registration confirmation email
+ * Send a registration confirmation email immediately
+ */
+export async function sendConfirmationEmail(data: {
+  email: string;
+  name: string | null;
+  webinarTitle: string;
+  scheduledAt: Date;
+  timezone: string;
+  watchUrl: string;
+  addToCalendarUrl?: string;
+  hostName?: string;
+  companyName?: string;
+}): Promise<{ success: boolean; error?: string }> {
+  if (!isEmailEnabled() || !resend) {
+    console.log(`Email disabled. Would send confirmation to ${data.email}`);
+    return { success: true };
+  }
+
+  try {
+    const formattedDate = formatInTimezone(data.scheduledAt, data.timezone, 'EEEE, MMMM d, yyyy');
+    const formattedTime = formatInTimezone(data.scheduledAt, data.timezone, 'h:mm a');
+
+    const html = renderConfirmationEmail({
+      recipientName: data.name || '',
+      webinarTitle: data.webinarTitle,
+      webinarDate: formattedDate,
+      webinarTime: formattedTime,
+      timezone: data.timezone,
+      watchUrl: data.watchUrl,
+      addToCalendarUrl: data.addToCalendarUrl,
+      hostName: data.hostName,
+      companyName: data.companyName,
+    });
+
+    const { error } = await resend.emails.send({
+      from: DEFAULT_FROM_EMAIL,
+      to: data.email,
+      subject: `You're registered: ${data.webinarTitle}`,
+      html,
+    });
+
+    if (error) {
+      console.error('Failed to send confirmation email:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    console.error('Failed to send confirmation email:', errorMessage);
+    return { success: false, error: errorMessage };
+  }
+}
+
+/**
+ * Schedule reminder emails using Resend's scheduledAt feature
+ */
+export async function scheduleReminderEmails(data: {
+  email: string;
+  name: string | null;
+  webinarTitle: string;
+  scheduledAt: Date;
+  timezone: string;
+  watchUrl: string;
+  hostName?: string;
+  send24h: boolean;
+  send1h: boolean;
+}): Promise<{ scheduled24h: boolean; scheduled1h: boolean }> {
+  if (!isEmailEnabled() || !resend) {
+    console.log(`Email disabled. Would schedule reminders for ${data.email}`);
+    return { scheduled24h: data.send24h, scheduled1h: data.send1h };
+  }
+
+  const formattedDate = formatInTimezone(data.scheduledAt, data.timezone, 'EEEE, MMMM d, yyyy');
+  const formattedTime = formatInTimezone(data.scheduledAt, data.timezone, 'h:mm a');
+  const now = new Date();
+
+  const results = { scheduled24h: false, scheduled1h: false };
+
+  // 24 hour reminder
+  if (data.send24h) {
+    const reminder24h = new Date(data.scheduledAt);
+    reminder24h.setHours(reminder24h.getHours() - 24);
+
+    if (reminder24h > now) {
+      try {
+        const html = renderReminderEmail({
+          recipientName: data.name || '',
+          webinarTitle: data.webinarTitle,
+          webinarDate: formattedDate,
+          webinarTime: formattedTime,
+          timezone: data.timezone,
+          watchUrl: data.watchUrl,
+          reminderType: '24h',
+          hostName: data.hostName,
+        });
+
+        const { error } = await resend.emails.send({
+          from: DEFAULT_FROM_EMAIL,
+          to: data.email,
+          subject: getReminderSubject(data.webinarTitle, '24h'),
+          html,
+          scheduledAt: reminder24h.toISOString(),
+        });
+
+        if (!error) {
+          results.scheduled24h = true;
+        } else {
+          console.error('Failed to schedule 24h reminder:', error);
+        }
+      } catch (err) {
+        console.error('Failed to schedule 24h reminder:', err);
+      }
+    }
+  }
+
+  // 1 hour reminder
+  if (data.send1h) {
+    const reminder1h = new Date(data.scheduledAt);
+    reminder1h.setHours(reminder1h.getHours() - 1);
+
+    if (reminder1h > now) {
+      try {
+        const html = renderReminderEmail({
+          recipientName: data.name || '',
+          webinarTitle: data.webinarTitle,
+          webinarDate: formattedDate,
+          webinarTime: formattedTime,
+          timezone: data.timezone,
+          watchUrl: data.watchUrl,
+          reminderType: '1h',
+          hostName: data.hostName,
+        });
+
+        const { error } = await resend.emails.send({
+          from: DEFAULT_FROM_EMAIL,
+          to: data.email,
+          subject: getReminderSubject(data.webinarTitle, '1h'),
+          html,
+          scheduledAt: reminder1h.toISOString(),
+        });
+
+        if (!error) {
+          results.scheduled1h = true;
+        } else {
+          console.error('Failed to schedule 1h reminder:', error);
+        }
+      } catch (err) {
+        console.error('Failed to schedule 1h reminder:', err);
+      }
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Send a replay email immediately
+ */
+export async function sendReplayEmail(data: {
+  email: string;
+  name: string | null;
+  webinarTitle: string;
+  replayUrl: string;
+  attended: boolean;
+  hostName?: string;
+  ctaText?: string;
+  ctaUrl?: string;
+}): Promise<{ success: boolean; error?: string }> {
+  if (!isEmailEnabled() || !resend) {
+    console.log(`Email disabled. Would send replay to ${data.email}`);
+    return { success: true };
+  }
+
+  try {
+    const html = renderReplayEmail({
+      recipientName: data.name || '',
+      webinarTitle: data.webinarTitle,
+      replayUrl: data.replayUrl,
+      attended: data.attended,
+      hostName: data.hostName,
+      ctaText: data.ctaText,
+      ctaUrl: data.ctaUrl,
+    });
+
+    const { error } = await resend.emails.send({
+      from: DEFAULT_FROM_EMAIL,
+      to: data.email,
+      subject: getReplaySubject(data.webinarTitle, data.attended),
+      html,
+    });
+
+    if (error) {
+      console.error('Failed to send replay email:', error);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true };
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    console.error('Failed to send replay email:', errorMessage);
+    return { success: false, error: errorMessage };
+  }
+}
+
+// ============================================
+// Legacy Queue Functions (kept for compatibility)
+// These now send directly instead of queuing
+// ============================================
+
+/**
+ * @deprecated Use sendConfirmationEmail instead
  */
 export async function queueConfirmationEmail(data: {
   registrationId: string;
@@ -34,32 +243,11 @@ export async function queueConfirmationEmail(data: {
   hostName?: string;
   companyName?: string;
 }): Promise<void> {
-  const formattedDate = formatInTimezone(data.scheduledAt, data.timezone, 'EEEE, MMMM d, yyyy');
-  const formattedTime = formatInTimezone(data.scheduledAt, data.timezone, 'h:mm a');
-
-  await queueEmail({
-    emailType: 'confirmation',
-    registrationId: data.registrationId,
-    toEmail: data.email,
-    toName: data.name,
-    subject: `You're registered: ${data.webinarTitle}`,
-    templateData: {
-      recipientName: data.name || '',
-      webinarTitle: data.webinarTitle,
-      webinarDate: formattedDate,
-      webinarTime: formattedTime,
-      timezone: data.timezone,
-      watchUrl: data.watchUrl,
-      addToCalendarUrl: data.addToCalendarUrl,
-      hostName: data.hostName,
-      companyName: data.companyName,
-    },
-    scheduledFor: new Date(), // Send immediately
-  });
+  await sendConfirmationEmail(data);
 }
 
 /**
- * Queue reminder emails (24h and 1h before)
+ * @deprecated Use scheduleReminderEmails instead
  */
 export async function queueReminderEmails(data: {
   registrationId: string;
@@ -73,60 +261,11 @@ export async function queueReminderEmails(data: {
   send24h: boolean;
   send1h: boolean;
 }): Promise<void> {
-  const formattedDate = formatInTimezone(data.scheduledAt, data.timezone, 'EEEE, MMMM d, yyyy');
-  const formattedTime = formatInTimezone(data.scheduledAt, data.timezone, 'h:mm a');
-
-  const baseTemplateData = {
-    recipientName: data.name || '',
-    webinarTitle: data.webinarTitle,
-    webinarDate: formattedDate,
-    webinarTime: formattedTime,
-    timezone: data.timezone,
-    watchUrl: data.watchUrl,
-    hostName: data.hostName,
-  };
-
-  // 24 hour reminder
-  if (data.send24h) {
-    const reminder24h = new Date(data.scheduledAt);
-    reminder24h.setHours(reminder24h.getHours() - 24);
-
-    // Only queue if it's in the future
-    if (reminder24h > new Date()) {
-      await queueEmail({
-        emailType: 'reminder_24h',
-        registrationId: data.registrationId,
-        toEmail: data.email,
-        toName: data.name,
-        subject: getReminderSubject(data.webinarTitle, '24h'),
-        templateData: { ...baseTemplateData, reminderType: '24h' },
-        scheduledFor: reminder24h,
-      });
-    }
-  }
-
-  // 1 hour reminder
-  if (data.send1h) {
-    const reminder1h = new Date(data.scheduledAt);
-    reminder1h.setHours(reminder1h.getHours() - 1);
-
-    // Only queue if it's in the future
-    if (reminder1h > new Date()) {
-      await queueEmail({
-        emailType: 'reminder_1h',
-        registrationId: data.registrationId,
-        toEmail: data.email,
-        toName: data.name,
-        subject: getReminderSubject(data.webinarTitle, '1h'),
-        templateData: { ...baseTemplateData, reminderType: '1h' },
-        scheduledFor: reminder1h,
-      });
-    }
-  }
+  await scheduleReminderEmails(data);
 }
 
 /**
- * Queue replay email
+ * @deprecated Use sendReplayEmail instead
  */
 export async function queueReplayEmail(data: {
   registrationId: string;
@@ -139,141 +278,16 @@ export async function queueReplayEmail(data: {
   ctaText?: string;
   ctaUrl?: string;
 }): Promise<void> {
-  await queueEmail({
-    emailType: 'replay',
-    registrationId: data.registrationId,
-    toEmail: data.email,
-    toName: data.name,
-    subject: getReplaySubject(data.webinarTitle, data.attended),
-    templateData: {
-      recipientName: data.name || '',
-      webinarTitle: data.webinarTitle,
-      replayUrl: data.replayUrl,
-      attended: data.attended,
-      hostName: data.hostName,
-      ctaText: data.ctaText,
-      ctaUrl: data.ctaUrl,
-    },
-    scheduledFor: new Date(), // Send immediately
-  });
+  await sendReplayEmail(data);
 }
 
-// ============================================
-// Send Functions (Process queue)
-// ============================================
-
-/**
- * Send a single email from the queue
- */
-export async function sendQueuedEmail(email: EmailQueueItem): Promise<boolean> {
-  if (!isEmailEnabled() || !resend) {
-    console.log(`Email sending disabled. Would send ${email.email_type} to ${email.to_email}`);
-    await markEmailSent(email.id);
-    return true;
-  }
-
-  try {
-    const html = renderEmailHtml(email);
-
-    const { error } = await resend.emails.send({
-      from: DEFAULT_FROM_EMAIL,
-      to: email.to_email,
-      subject: email.subject,
-      html,
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    await markEmailSent(email.id);
-    return true;
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
-    console.error(`Failed to send email ${email.id}:`, errorMessage);
-    await markEmailFailed(email.id, errorMessage);
-    return false;
-  }
+// These functions are no longer needed but kept for compatibility
+export async function sendQueuedEmail(): Promise<boolean> {
+  console.warn('sendQueuedEmail is deprecated - emails are now sent directly');
+  return true;
 }
 
-/**
- * Process the email queue
- */
-export async function processEmailQueue(limit: number = 50): Promise<{
-  processed: number;
-  sent: number;
-  failed: number;
-}> {
-  const emails = await getEmailsToSend(limit);
-
-  let sent = 0;
-  let failed = 0;
-
-  for (const email of emails) {
-    const success = await sendQueuedEmail(email);
-    if (success) {
-      sent++;
-    } else {
-      failed++;
-    }
-  }
-
-  return {
-    processed: emails.length,
-    sent,
-    failed,
-  };
-}
-
-// ============================================
-// Helper Functions
-// ============================================
-
-/**
- * Render email HTML based on type
- */
-function renderEmailHtml(email: EmailQueueItem): string {
-  const data = email.template_data as Record<string, unknown>;
-
-  switch (email.email_type) {
-    case 'confirmation':
-      return renderConfirmationEmail({
-        recipientName: data.recipientName as string,
-        webinarTitle: data.webinarTitle as string,
-        webinarDate: data.webinarDate as string,
-        webinarTime: data.webinarTime as string,
-        timezone: data.timezone as string,
-        watchUrl: data.watchUrl as string,
-        addToCalendarUrl: data.addToCalendarUrl as string | undefined,
-        hostName: data.hostName as string | undefined,
-        companyName: data.companyName as string | undefined,
-      });
-
-    case 'reminder_24h':
-    case 'reminder_1h':
-      return renderReminderEmail({
-        recipientName: data.recipientName as string,
-        webinarTitle: data.webinarTitle as string,
-        webinarDate: data.webinarDate as string,
-        webinarTime: data.webinarTime as string,
-        timezone: data.timezone as string,
-        watchUrl: data.watchUrl as string,
-        reminderType: data.reminderType as '24h' | '1h',
-        hostName: data.hostName as string | undefined,
-      });
-
-    case 'replay':
-      return renderReplayEmail({
-        recipientName: data.recipientName as string,
-        webinarTitle: data.webinarTitle as string,
-        replayUrl: data.replayUrl as string,
-        attended: data.attended as boolean,
-        hostName: data.hostName as string | undefined,
-        ctaText: data.ctaText as string | undefined,
-        ctaUrl: data.ctaUrl as string | undefined,
-      });
-
-    default:
-      throw new Error(`Unknown email type: ${email.email_type}`);
-  }
+export async function processEmailQueue(): Promise<{ processed: number; sent: number; failed: number }> {
+  console.warn('processEmailQueue is deprecated - emails are now sent directly');
+  return { processed: 0, sent: 0, failed: 0 };
 }

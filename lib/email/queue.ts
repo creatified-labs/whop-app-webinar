@@ -1,6 +1,15 @@
 /**
- * Email Queue Management
- * Functions to manage the email queue in Supabase
+ * Email Queue Management (DEPRECATED)
+ *
+ * NOTE: The email queue is NO LONGER USED for sending emails.
+ * Emails are now sent directly via Resend (see lib/email/send.ts).
+ *
+ * These functions are kept for:
+ * - Backward compatibility during migration
+ * - Manual cleanup of existing queue entries
+ * - Potential future use for bulk operations
+ *
+ * @deprecated Use direct Resend sending instead (lib/email/send.ts)
  */
 
 import { createAdminClient } from '@/lib/supabase/server';

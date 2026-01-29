@@ -1,12 +1,21 @@
 /**
- * Update Webinar Status Cron Job
- * Automatically updates webinar status based on schedule
+ * Update Webinar Status Cron Job (DEPRECATED - OPTIONAL FALLBACK)
  *
+ * NOTE: Status updates now happen in real-time when pages are loaded.
+ * See: lib/data/webinars.ts -> checkAndUpdateWebinarStatus()
+ *
+ * This cron job is NO LONGER REQUIRED but kept as an optional fallback for:
+ * - Catching any webinars that haven't been viewed in a long time
+ * - Running manually for maintenance/debugging
+ *
+ * Status transitions:
  * - scheduled -> live: When scheduled_at time is reached
  * - live -> ended: When scheduled_at + duration_minutes has passed
  *
- * Run every minute via Vercel Cron:
- * vercel.json: { "crons": [{ "path": "/api/cron/update-webinar-status", "schedule": "* * * * *" }] }
+ * Replay emails are now sent automatically when status transitions to 'ended'
+ * via the real-time status check (see queueReplayEmailsOnEnd in webinars.ts)
+ *
+ * @deprecated Status updates happen on page load. Remove from vercel.json crons.
  */
 
 import { NextRequest, NextResponse } from 'next/server';

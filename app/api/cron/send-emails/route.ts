@@ -1,13 +1,21 @@
 /**
- * Send Emails Cron Job
- * Processes the email queue and sends pending emails
+ * Send Emails Cron Job (DEPRECATED)
  *
- * Run every minute via Vercel Cron:
- * vercel.json: { "crons": [{ "path": "/api/cron/send-emails", "schedule": "* * * * *" }] }
+ * NOTE: This cron job is NO LONGER NEEDED.
+ * Emails are now sent directly via Resend when events occur:
+ * - Confirmation emails: Sent immediately on registration
+ * - Reminder emails: Scheduled via Resend's scheduledAt feature
+ * - Replay emails: Sent when webinar status transitions to 'ended'
+ *
+ * This endpoint is kept for:
+ * - Backward compatibility
+ * - Manual cleanup of old queue entries if migrating
+ *
+ * @deprecated Use direct Resend sending instead (lib/email/send.ts)
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { processEmailQueue, cleanupOldEmails } from '@/lib/email';
+import { cleanupOldEmails } from '@/lib/email';
 
 // Verify cron secret to prevent unauthorized access
 const CRON_SECRET = process.env.CRON_SECRET;
@@ -24,18 +32,12 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    // Process email queue
-    const result = await processEmailQueue(50);
-
-    // Cleanup old emails occasionally (1% chance per run)
-    let cleanedUp = 0;
-    if (Math.random() < 0.01) {
-      cleanedUp = await cleanupOldEmails(30);
-    }
+    // Only cleanup old emails - no processing needed anymore
+    const cleanedUp = await cleanupOldEmails(30);
 
     return NextResponse.json({
       success: true,
-      ...result,
+      message: 'Email cron is deprecated - emails are now sent directly via Resend',
       cleanedUp,
       timestamp: new Date().toISOString(),
     });
@@ -43,7 +45,7 @@ export async function GET(request: NextRequest) {
     console.error('Email cron error:', error);
     return NextResponse.json(
       {
-        error: 'Failed to process email queue',
+        error: 'Failed to cleanup email queue',
         message: error instanceof Error ? error.message : 'Unknown error',
       },
       { status: 500 }

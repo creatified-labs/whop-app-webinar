@@ -5,6 +5,7 @@
 
 import { createAdminClient } from '@/lib/supabase/server';
 import { generateUniqueSlug } from '@/lib/utils/slug';
+import { hasWebinarStarted, hasWebinarEnded } from '@/lib/utils/date';
 import type {
   Webinar,
   WebinarInsert,
@@ -15,6 +16,107 @@ import type {
   WebinarStatus,
 } from '@/types/database';
 import type { WebinarWithHosts, WebinarWithDetails, WebinarPublicView } from '@/types';
+
+// ============================================
+// Real-time Status Management
+// ============================================
+
+/**
+ * Check and update webinar status based on current time
+ * Called on page load instead of using cron jobs
+ * Returns the updated status if changed, or current status
+ */
+export async function checkAndUpdateWebinarStatus(
+  webinar: { id: string; status: WebinarStatus; scheduled_at: string; duration_minutes: number }
+): Promise<WebinarStatus> {
+  const { id, status, scheduled_at, duration_minutes } = webinar;
+
+  // Only check scheduled or live webinars
+  if (status !== 'scheduled' && status !== 'live') {
+    return status;
+  }
+
+  const shouldBeLive = status === 'scheduled' && hasWebinarStarted(scheduled_at);
+  const shouldBeEnded = status === 'live' && hasWebinarEnded(scheduled_at, duration_minutes);
+
+  if (shouldBeLive) {
+    await updateWebinarStatus(id, 'live');
+    return 'live';
+  }
+
+  if (shouldBeEnded) {
+    await updateWebinarStatus(id, 'ended');
+    // Queue replay emails in the background (fire and forget)
+    queueReplayEmailsOnEnd(id).catch(console.error);
+    return 'ended';
+  }
+
+  return status;
+}
+
+/**
+ * Queue replay emails when webinar ends
+ * This runs in the background when status transitions to 'ended'
+ */
+async function queueReplayEmailsOnEnd(webinarId: string): Promise<void> {
+  const supabase = createAdminClient();
+
+  // Get webinar details
+  const { data: webinar } = await supabase
+    .from('webinars')
+    .select('id, title, replay_url, cta_text, cta_url, send_replay_email')
+    .eq('id', webinarId)
+    .single();
+
+  if (!webinar?.send_replay_email || !webinar.replay_url) {
+    return;
+  }
+
+  // Get registrations that haven't received replay email
+  const { data: registrations } = await supabase
+    .from('registrations')
+    .select('id, email, name, attended')
+    .eq('webinar_id', webinarId)
+    .eq('replay_sent', false);
+
+  if (!registrations?.length) {
+    return;
+  }
+
+  // Get host name
+  const { data: hosts } = await supabase
+    .from('webinar_hosts')
+    .select('name')
+    .eq('webinar_id', webinarId)
+    .order('display_order', { ascending: true })
+    .limit(1);
+
+  const hostName = hosts?.[0]?.name;
+
+  // Import email function dynamically to avoid circular deps
+  const { queueReplayEmail } = await import('@/lib/email');
+
+  // Queue emails for each registration
+  for (const registration of registrations) {
+    await queueReplayEmail({
+      registrationId: registration.id,
+      email: registration.email,
+      name: registration.name,
+      webinarTitle: webinar.title,
+      replayUrl: webinar.replay_url,
+      attended: registration.attended,
+      hostName,
+      ctaText: webinar.cta_text || undefined,
+      ctaUrl: webinar.cta_url || undefined,
+    });
+
+    // Mark replay as sent
+    await supabase
+      .from('registrations')
+      .update({ replay_sent: true })
+      .eq('id', registration.id);
+  }
+}
 
 // ============================================
 // Webinar CRUD
@@ -52,6 +154,7 @@ export async function createWebinar(
 
 /**
  * Get a webinar by ID
+ * Includes real-time status check and update
  */
 export async function getWebinarById(id: string): Promise<Webinar | null> {
   const supabase = createAdminClient();
@@ -66,7 +169,17 @@ export async function getWebinarById(id: string): Promise<Webinar | null> {
     throw new Error(`Failed to get webinar: ${error.message}`);
   }
 
-  return data;
+  if (!data) return null;
+
+  // Real-time status check and update
+  const currentStatus = await checkAndUpdateWebinarStatus({
+    id: data.id,
+    status: data.status,
+    scheduled_at: data.scheduled_at,
+    duration_minutes: data.duration_minutes,
+  });
+
+  return { ...data, status: currentStatus };
 }
 
 /**
@@ -117,6 +230,7 @@ export async function getWebinarWithHosts(id: string): Promise<WebinarWithHosts 
 
 /**
  * Get a webinar with full details (for dashboard)
+ * Includes real-time status check and update
  */
 export async function getWebinarWithDetails(id: string): Promise<WebinarWithDetails | null> {
   const supabase = createAdminClient();
@@ -138,8 +252,17 @@ export async function getWebinarWithDetails(id: string): Promise<WebinarWithDeta
 
   if (!data) return null;
 
+  // Real-time status check and update
+  const currentStatus = await checkAndUpdateWebinarStatus({
+    id: data.id,
+    status: data.status,
+    scheduled_at: data.scheduled_at,
+    duration_minutes: data.duration_minutes,
+  });
+
   return {
     ...data,
+    status: currentStatus, // Use the updated status
     hosts: data.hosts.sort((a: WebinarHost, b: WebinarHost) => a.display_order - b.display_order),
     registration_count: data.registrations[0]?.count ?? 0,
   } as unknown as WebinarWithDetails;
@@ -147,6 +270,7 @@ export async function getWebinarWithDetails(id: string): Promise<WebinarWithDeta
 
 /**
  * Get public webinar data (for landing pages)
+ * Includes real-time status check and update
  */
 export async function getWebinarPublicView(slug: string): Promise<WebinarPublicView | null> {
   const supabase = createAdminClient();
@@ -185,8 +309,17 @@ export async function getWebinarPublicView(slug: string): Promise<WebinarPublicV
 
   if (!data) return null;
 
+  // Real-time status check and update
+  const currentStatus = await checkAndUpdateWebinarStatus({
+    id: data.id,
+    status: data.status,
+    scheduled_at: data.scheduled_at,
+    duration_minutes: data.duration_minutes,
+  });
+
   return {
     ...data,
+    status: currentStatus, // Use the updated status
     hosts: data.hosts.sort((a: { display_order: number }, b: { display_order: number }) => a.display_order - b.display_order),
     company: data.company,
     registration_count: data.registrations[0]?.count ?? 0,
@@ -243,6 +376,7 @@ export async function deleteWebinar(id: string): Promise<void> {
 
 /**
  * Get all webinars for a company
+ * Includes real-time status check and update for each webinar
  */
 export async function getCompanyWebinars(
   companyId: string,
@@ -251,6 +385,7 @@ export async function getCompanyWebinars(
     search?: string;
     limit?: number;
     offset?: number;
+    skipStatusCheck?: boolean; // Skip status check for performance when not needed
   }
 ): Promise<{ webinars: WebinarWithHosts[]; total: number }> {
   const supabase = createAdminClient();
@@ -287,10 +422,27 @@ export async function getCompanyWebinars(
     throw new Error(`Failed to get company webinars: ${error.message}`);
   }
 
-  const webinars = data.map((webinar) => ({
-    ...webinar,
-    hosts: webinar.hosts.sort((a: WebinarHost, b: WebinarHost) => a.display_order - b.display_order),
-  })) as WebinarWithHosts[];
+  // Real-time status check for each webinar (unless skipped)
+  const webinars = await Promise.all(
+    data.map(async (webinar) => {
+      let currentStatus = webinar.status;
+
+      if (!options?.skipStatusCheck) {
+        currentStatus = await checkAndUpdateWebinarStatus({
+          id: webinar.id,
+          status: webinar.status,
+          scheduled_at: webinar.scheduled_at,
+          duration_minutes: webinar.duration_minutes,
+        });
+      }
+
+      return {
+        ...webinar,
+        status: currentStatus,
+        hosts: webinar.hosts.sort((a: WebinarHost, b: WebinarHost) => a.display_order - b.display_order),
+      };
+    })
+  ) as WebinarWithHosts[];
 
   return { webinars, total: count ?? 0 };
 }
