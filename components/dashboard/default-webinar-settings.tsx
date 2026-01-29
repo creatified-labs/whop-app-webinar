@@ -133,10 +133,10 @@ export function DefaultWebinarSettings({
                 <MessageSquare className="h-4 w-4 text-blue-11" />
               </div>
               <div>
-                <Text as="p" size="2" weight="medium">
+                <Text size="2" weight="medium">
                   Chat
                 </Text>
-                <Text as="p" size="1" color="gray">
+                <Text size="1" color="gray">
                   Enable live chat during webinars
                 </Text>
               </div>
@@ -153,10 +153,10 @@ export function DefaultWebinarSettings({
                 <HelpCircle className="h-4 w-4 text-purple-11" />
               </div>
               <div>
-                <Text as="p" size="2" weight="medium">
+                <Text size="2" weight="medium">
                   Q&A
                 </Text>
-                <Text as="p" size="1" color="gray">
+                <Text size="1" color="gray">
                   Enable question and answer feature
                 </Text>
               </div>
@@ -173,10 +173,10 @@ export function DefaultWebinarSettings({
                 <BarChart3 className="h-4 w-4 text-green-11" />
               </div>
               <div>
-                <Text as="p" size="2" weight="medium">
+                <Text size="2" weight="medium">
                   Polls
                 </Text>
-                <Text as="p" size="1" color="gray">
+                <Text size="1" color="gray">
                   Enable interactive polls
                 </Text>
               </div>
@@ -193,10 +193,10 @@ export function DefaultWebinarSettings({
                 <Smile className="h-4 w-4 text-orange-11" />
               </div>
               <div>
-                <Text as="p" size="2" weight="medium">
+                <Text size="2" weight="medium">
                   Reactions
                 </Text>
-                <Text as="p" size="1" color="gray">
+                <Text size="1" color="gray">
                   Enable emoji reactions
                 </Text>
               </div>
