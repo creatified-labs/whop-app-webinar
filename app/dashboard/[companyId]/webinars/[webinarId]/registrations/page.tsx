@@ -36,13 +36,13 @@ export default async function RegistrationsPage({ params }: RegistrationsPagePro
       <div className="mb-8">
         <Link
           href={`/dashboard/${companyId}/webinars/${webinarId}`}
-          className="mb-4 inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
+          className="mb-4 inline-flex items-center gap-2 text-sm text-gray-11 hover:text-gray-12"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Webinar
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900">Registrations</h1>
-        <p className="mt-1 text-gray-500">
+        <h1 className="text-2xl font-bold text-gray-12">Registrations</h1>
+        <p className="mt-1 text-gray-11">
           {webinar.title} &bull; {registrations.length} registered
         </p>
       </div>

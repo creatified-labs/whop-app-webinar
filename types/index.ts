@@ -36,6 +36,7 @@ import type {
   DiscountCode,
   Company,
   RegistrationField,
+  StreamStatus,
 } from './database';
 
 export interface WebinarWithHosts extends Webinar {
@@ -57,6 +58,9 @@ export interface WebinarPublicView {
   duration_minutes: number;
   timezone: string;
   status: Webinar['status'];
+  video_type: Webinar['video_type'];
+  video_url: string | null;
+  replay_url: string | null;
   cover_image_url: string | null;
   cta_text: string | null;
   cta_url: string | null;
@@ -66,6 +70,12 @@ export interface WebinarPublicView {
   polls_enabled: boolean;
   reactions_enabled: boolean;
   registration_fields: RegistrationField[];
+  // Payment fields
+  is_paid: boolean;
+  price_cents: number | null;
+  allow_free_with_code: boolean;
+  // Streaming fields
+  stream_status: StreamStatus | null;
   hosts: WebinarHost[];
   company: {
     name: string;

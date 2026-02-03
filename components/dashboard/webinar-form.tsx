@@ -5,19 +5,23 @@ import { useRouter } from 'next/navigation';
 import {
   Info,
   Calendar,
-  Video,
+  Video as VideoIcon,
   MousePointer,
   Settings2,
   Mail,
   Loader2,
   Check,
   ClipboardList,
+  Link2,
+  Radio,
 } from 'lucide-react';
 import { Card, Heading, Text, Button } from '@whop/react/components';
 import { COMMON_TIMEZONES } from '@/lib/utils/date';
 import { createWebinar, updateWebinar } from '@/app/actions/webinar';
 import { RegistrationFieldsConfig, defaultFields } from './registration-fields-config';
 import type { Webinar, VideoType, RegistrationField } from '@/types/database';
+
+type VideoSource = 'url' | 'whop_live' | 'google_meet';
 
 interface WebinarFormProps {
   companyId: string;
@@ -48,7 +52,9 @@ export function WebinarForm({ companyId, webinar, mode }: WebinarFormProps) {
   const [timezone, setTimezone] = useState(
     webinar?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
   );
-  const [videoType, setVideoType] = useState(webinar?.video_type || 'youtube');
+  const [videoType, setVideoType] = useState<VideoSource>(
+    (webinar?.video_type as VideoSource) || 'whop_live'
+  );
   const [videoUrl, setVideoUrl] = useState(webinar?.video_url || '');
   const [replayUrl, setReplayUrl] = useState(webinar?.replay_url || '');
   const [coverImageUrl, setCoverImageUrl] = useState(webinar?.cover_image_url || '');
@@ -94,7 +100,7 @@ export function WebinarForm({ companyId, webinar, mode }: WebinarFormProps) {
         scheduled_at: new Date(scheduledAt).toISOString(),
         duration_minutes: durationMinutes,
         timezone,
-        video_type: videoType as 'youtube' | 'vimeo' | 'hls' | 'custom',
+        video_type: videoType as VideoType,
         video_url: videoUrl.trim() || undefined,
         replay_url: replayUrl.trim() || undefined,
         cover_image_url: coverImageUrl.trim() || undefined,
@@ -222,55 +228,138 @@ export function WebinarForm({ companyId, webinar, mode }: WebinarFormProps) {
 
       {/* Video Settings */}
       <FormSection
-        icon={Video}
+        icon={VideoIcon}
         title="Video Settings"
-        description="Configure your video source"
+        description="Choose your video source"
       >
         <div className="space-y-4">
-          <FormField label="Video Platform">
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              {(['youtube', 'vimeo', 'hls', 'custom'] as VideoType[]).map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setVideoType(type)}
-                  className={`rounded-2 border-2 px-4 py-2.5 text-2 font-medium transition-all ${
-                    videoType === type
-                      ? 'border-accent-9 bg-accent-a3 text-accent-11'
-                      : 'border-gray-a6 text-gray-11 hover:border-gray-a8'
-                  }`}
+          <div className="grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => setVideoType('url')}
+              className={`flex items-start gap-3 rounded-2 border p-4 text-left transition-all ${
+                videoType === 'url'
+                  ? 'glass-depth border-accent-9/50 shadow-glass-sm'
+                  : 'glass-light border-transparent hover:glass hover:shadow-glass-sm'
+              }`}
+            >
+              <div
+                className={`mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2 transition-colors ${
+                  videoType === 'url' ? 'bg-accent-9' : 'bg-gray-a4'
+                }`}
+              >
+                <Link2 className={`h-5 w-5 ${videoType === 'url' ? 'text-white' : 'text-gray-11'}`} />
+              </div>
+              <div className="flex flex-col">
+                <Text size="2" weight="medium" className={videoType === 'url' ? 'text-accent-11' : ''}>
+                  Video Link
+                </Text>
+                <Text size="1" color="gray">
+                  YouTube, Vimeo, or custom URL
+                </Text>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setVideoType('whop_live')}
+              className={`flex items-start gap-3 rounded-2 border p-4 text-left transition-all ${
+                videoType === 'whop_live'
+                  ? 'glass-depth border-accent-9/50 shadow-glass-sm'
+                  : 'glass-light border-transparent hover:glass hover:shadow-glass-sm'
+              }`}
+            >
+              <div
+                className={`mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2 transition-colors ${
+                  videoType === 'whop_live' ? 'bg-accent-9' : 'bg-gray-a4'
+                }`}
+              >
+                <Radio className={`h-5 w-5 ${videoType === 'whop_live' ? 'text-white' : 'text-gray-11'}`} />
+              </div>
+              <div className="flex flex-col">
+                <Text size="2" weight="medium" className={videoType === 'whop_live' ? 'text-accent-11' : ''}>
+                  Whop Live
+                </Text>
+                <Text size="1" color="gray">
+                  Whop&apos;s built-in streaming
+                </Text>
+              </div>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setVideoType('google_meet')}
+              className={`flex items-start gap-3 rounded-2 border p-4 text-left transition-all ${
+                videoType === 'google_meet'
+                  ? 'glass-depth border-accent-9/50 shadow-glass-sm'
+                  : 'glass-light border-transparent hover:glass hover:shadow-glass-sm'
+              }`}
+            >
+              <div
+                className={`mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2 transition-colors ${
+                  videoType === 'google_meet' ? 'bg-accent-9' : 'bg-gray-a4'
+                }`}
+              >
+                <svg
+                  className={`h-5 w-5 ${videoType === 'google_meet' ? 'text-white' : 'text-gray-11'}`}
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
                 >
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </button>
-              ))}
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                </svg>
+              </div>
+              <div className="flex flex-col">
+                <Text size="2" weight="medium" className={videoType === 'google_meet' ? 'text-accent-11' : ''}>
+                  Google Meet
+                </Text>
+                <Text size="1" color="gray">
+                  Connect your Google account
+                </Text>
+              </div>
+            </button>
+
+          </div>
+
+          {videoType === 'url' && (
+            <>
+              <FormField label="Video URL">
+                <input
+                  type="url"
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                  placeholder="https://youtube.com/watch?v=... or https://vimeo.com/..."
+                  className="w-full rounded-2 border border-gray-a6 bg-gray-1 px-3 py-2.5 text-2 text-gray-12 placeholder:text-gray-9 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
+                />
+              </FormField>
+
+              <FormField label="Replay URL (optional)">
+                <input
+                  type="url"
+                  value={replayUrl}
+                  onChange={(e) => setReplayUrl(e.target.value)}
+                  placeholder="https://..."
+                  className="w-full rounded-2 border border-gray-a6 bg-gray-1 px-3 py-2.5 text-2 text-gray-12 placeholder:text-gray-9 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
+                />
+              </FormField>
+            </>
+          )}
+
+          {videoType === 'whop_live' && (
+            <div className="rounded-2 border border-blue-a6 bg-blue-a3 p-4">
+              <Text size="2" color="blue">
+                Your Whop live stream will be configured automatically when you go live. Make sure you have streaming enabled in your Whop dashboard.
+              </Text>
             </div>
-          </FormField>
+          )}
 
-          <FormField label="Live Video URL">
-            <input
-              type="url"
-              value={videoUrl}
-              onChange={(e) => setVideoUrl(e.target.value)}
-              placeholder={
-                videoType === 'youtube'
-                  ? 'https://youtube.com/watch?v=...'
-                  : videoType === 'vimeo'
-                  ? 'https://vimeo.com/...'
-                  : 'https://...'
-              }
-              className="w-full rounded-2 border border-gray-a6 bg-gray-1 px-3 py-2.5 text-2 text-gray-12 placeholder:text-gray-9 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
-            />
-          </FormField>
+          {videoType === 'google_meet' && (
+            <div className="rounded-2 border border-green-a6 bg-green-a3 p-4">
+              <Text size="2" color="green">
+                Connect your Google account to create and manage Google Meet sessions directly from your webinar dashboard.
+              </Text>
+            </div>
+          )}
 
-          <FormField label="Replay URL (optional)">
-            <input
-              type="url"
-              value={replayUrl}
-              onChange={(e) => setReplayUrl(e.target.value)}
-              placeholder="https://..."
-              className="w-full rounded-2 border border-gray-a6 bg-gray-1 px-3 py-2.5 text-2 text-gray-12 placeholder:text-gray-9 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
-            />
-          </FormField>
         </div>
       </FormSection>
 
@@ -439,7 +528,7 @@ interface FormSectionProps {
 
 function FormSection({ icon: Icon, title, description, children }: FormSectionProps) {
   return (
-    <Card size="2">
+    <Card size="2" className="glass-depth shadow-glass highlight-corner">
       <div className="mb-4 flex items-start gap-3">
         <div className="rounded-2 bg-gray-a3 p-2">
           <Icon className="h-5 w-5 text-gray-11" />
@@ -488,10 +577,10 @@ function ToggleCard({ label, description, checked, onChange }: ToggleCardProps) 
     <button
       type="button"
       onClick={() => onChange(!checked)}
-      className={`flex items-start gap-3 rounded-2 border-2 p-3 text-left transition-all ${
+      className={`flex items-start gap-3 rounded-2 border p-3 text-left transition-all ${
         checked
-          ? 'border-accent-9 bg-accent-a3'
-          : 'border-gray-a6 hover:border-gray-a8'
+          ? 'glass-depth border-accent-9/50 shadow-glass-sm'
+          : 'glass-light border-transparent hover:glass hover:shadow-glass-sm'
       }`}
     >
       <div

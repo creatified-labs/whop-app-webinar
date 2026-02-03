@@ -4,10 +4,12 @@ import { Sparkles } from 'lucide-react';
 import { whopsdk } from '@/lib/whop-sdk';
 import { getCompanyByWhopId, getCompanyMembersWithUsers, checkCompanyRole } from '@/lib/data/companies';
 import { getOrCreateUser } from '@/lib/data/users';
+import { getEngagementConfig } from '@/lib/data/engagement';
 import { CompanyProfileForm } from '@/components/dashboard/company-profile-form';
 import { TeamMembersList } from '@/components/dashboard/team-members-list';
 import { NotificationSettings } from '@/components/dashboard/notification-settings';
 import { DefaultWebinarSettings } from '@/components/dashboard/default-webinar-settings';
+import { EngagementConfigForm } from '@/components/dashboard/engagement-config';
 
 interface SettingsPageProps {
   params: Promise<{ companyId: string }>;
@@ -47,10 +49,11 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
     );
   }
 
-  // Get members and check if current user is owner
-  const [members, isOwner] = await Promise.all([
+  // Get members, engagement config, and check if current user is owner
+  const [members, isOwner, engagementConfig] = await Promise.all([
     getCompanyMembersWithUsers(company.id),
     checkCompanyRole(company.id, dbUser.id, 'owner'),
+    getEngagementConfig(company.id),
   ]);
 
   return (
@@ -87,6 +90,12 @@ export default async function SettingsPage({ params }: SettingsPageProps) {
 
           {/* Default Webinar Settings */}
           <DefaultWebinarSettings whopCompanyId={whopCompanyId} />
+
+          {/* Engagement Scoring Config */}
+          <EngagementConfigForm
+            companyId={company.id}
+            initialConfig={engagementConfig || undefined}
+          />
         </div>
       </div>
     </div>

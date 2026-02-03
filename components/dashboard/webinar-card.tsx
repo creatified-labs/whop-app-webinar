@@ -1,5 +1,9 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import {
   Calendar,
   Users,
@@ -7,11 +11,23 @@ import {
   ExternalLink,
   Clock,
   MoreHorizontal,
-  Copy,
+  Link2,
   Play,
+  Trash2,
+  ClipboardList,
 } from 'lucide-react';
-import { Card, Badge, Text, Heading, IconButton, Button } from '@whop/react/components';
+import {
+  Card,
+  Badge,
+  Text,
+  Heading,
+  IconButton,
+  Button,
+  DropdownMenu,
+  AlertDialog,
+} from '@whop/react/components';
 import { formatWebinarDate, formatDuration } from '@/lib/utils/date';
+import { deleteWebinar } from '@/app/actions/webinar';
 import type { WebinarWithHosts, WebinarStatus } from '@/types';
 
 interface WebinarCardProps {
@@ -32,10 +48,42 @@ const statusConfig: Record<WebinarStatus, { color: 'gray' | 'blue' | 'red' | 'gr
  * Modern card using Frosted UI components
  */
 export function WebinarCard({ webinar, companyId }: WebinarCardProps) {
+  const router = useRouter();
   const status = statusConfig[webinar.status];
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+  const webinarWatchUrl = `${baseUrl}/webinar/${webinar.slug}/watch`;
+  const webinarRegistrationUrl = `${baseUrl}/webinar/${webinar.slug}`;
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const result = await deleteWebinar(webinar.id);
+      if (result.success) {
+        setIsDeleteDialogOpen(false);
+        router.refresh();
+      } else {
+        console.error('Failed to delete webinar:', result.error);
+      }
+    } catch (error) {
+      console.error('Failed to delete webinar:', error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
-    <Card size="1" className="group overflow-hidden transition-shadow hover:shadow-3">
+    <Card size="1" className="group overflow-hidden glass shadow-glass glass-interactive">
       {/* Cover Image */}
       <div className="relative -mx-4 -mt-4 mb-4 aspect-video overflow-hidden bg-gray-a2">
         {webinar.cover_image_url ? (
@@ -64,7 +112,7 @@ export function WebinarCard({ webinar, companyId }: WebinarCardProps) {
         </div>
 
         {/* Quick Actions Overlay */}
-        <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black-a8 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+        <div className="absolute inset-0 flex items-center justify-center gap-2 glass-heavy opacity-0 transition-opacity group-hover:opacity-100">
           <Link href={`/dashboard/${companyId}/webinars/${webinar.id}`}>
             <Button size="2" variant="solid" highContrast>
               <Edit className="h-4 w-4" />
@@ -113,14 +161,53 @@ export function WebinarCard({ webinar, companyId }: WebinarCardProps) {
               <Play className="h-3.5 w-3.5" />
             </IconButton>
           )}
-          <IconButton size="1" variant="ghost" color="gray">
-            <Copy className="h-3.5 w-3.5" />
-          </IconButton>
-          <IconButton size="1" variant="ghost" color="gray">
-            <MoreHorizontal className="h-3.5 w-3.5" />
-          </IconButton>
+          <DropdownMenu.Root>
+            <DropdownMenu.Trigger>
+              <IconButton size="1" variant="ghost" color="gray">
+                <MoreHorizontal className="h-3.5 w-3.5" />
+              </IconButton>
+            </DropdownMenu.Trigger>
+            <DropdownMenu.Content size="1" align="end">
+              <DropdownMenu.Item onClick={() => copyToClipboard(webinarWatchUrl)}>
+                <Link2 className="h-3.5 w-3.5" />
+                Copy Webinar Link
+              </DropdownMenu.Item>
+              <DropdownMenu.Item onClick={() => copyToClipboard(webinarRegistrationUrl)}>
+                <ClipboardList className="h-3.5 w-3.5" />
+                Copy Registration Link
+              </DropdownMenu.Item>
+              <DropdownMenu.Separator />
+              <DropdownMenu.Item color="red" onClick={() => setIsDeleteDialogOpen(true)}>
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete Webinar
+              </DropdownMenu.Item>
+            </DropdownMenu.Content>
+          </DropdownMenu.Root>
         </div>
       </div>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog.Root open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialog.Content size="2">
+          <AlertDialog.Title>Delete Webinar</AlertDialog.Title>
+          <AlertDialog.Description>
+            Are you sure you want to delete &quot;{webinar.title}&quot;? This action cannot be undone
+            and will remove all associated registrations and data.
+          </AlertDialog.Description>
+          <div className="mt-4 flex justify-end gap-3">
+            <AlertDialog.Cancel>
+              <Button variant="soft" color="gray">
+                Cancel
+              </Button>
+            </AlertDialog.Cancel>
+            <AlertDialog.Action>
+              <Button variant="solid" color="red" onClick={handleDelete} disabled={isDeleting}>
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </Button>
+            </AlertDialog.Action>
+          </div>
+        </AlertDialog.Content>
+      </AlertDialog.Root>
     </Card>
   );
 }
@@ -137,7 +224,7 @@ interface WebinarListProps {
 export function WebinarList({ webinars, companyId }: WebinarListProps) {
   if (webinars.length === 0) {
     return (
-      <Card size="3">
+      <Card size="3" className="glass-depth shadow-glass highlight-corner">
         <div className="flex flex-col items-center py-8">
           <div className="mb-4 rounded-3 bg-gray-a3 p-4">
             <Calendar className="h-8 w-8 text-gray-8" />

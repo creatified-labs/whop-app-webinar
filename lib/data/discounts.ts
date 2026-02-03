@@ -197,6 +197,29 @@ export async function validateDiscountCode(
 }
 
 /**
+ * Check if a discount code grants free access
+ */
+export async function checkFreeAccessCode(
+  webinarId: string,
+  code: string
+): Promise<DiscountCode | null> {
+  const discountCode = await validateDiscountCode(webinarId, code);
+
+  if (!discountCode) return null;
+  if (!discountCode.allows_free_access) return null;
+
+  return discountCode;
+}
+
+/**
+ * Get all free access codes for a webinar
+ */
+export async function getFreeAccessCodes(webinarId: string): Promise<DiscountCode[]> {
+  const codes = await getWebinarDiscountCodes(webinarId);
+  return codes.filter((code) => code.is_active && code.allows_free_access);
+}
+
+/**
  * Get active discount codes to show during webinar
  */
 export async function getActiveDiscountCodes(

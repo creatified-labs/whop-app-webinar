@@ -113,12 +113,12 @@ export function DiscountManager({
 
       {/* Create Form */}
       {isCreating && (
-        <div className="rounded-xl border border-gray-200 bg-white p-6">
-          <h3 className="mb-4 font-semibold text-gray-900">New Discount Code</h3>
+        <div className="rounded-3 border border-gray-a4 bg-gray-a2 p-6">
+          <h3 className="mb-4 font-semibold text-gray-12">New Discount Code</h3>
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-2 font-medium text-gray-12">
                   Code *
                 </label>
                 <input
@@ -126,12 +126,12 @@ export function DiscountManager({
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
                   placeholder="SAVE20"
-                  className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 uppercase focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="mt-1 w-full rounded-2 border border-gray-a6 bg-gray-1 px-4 py-2.5 uppercase text-gray-12 placeholder:text-gray-9 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-2 font-medium text-gray-12">
                   Description
                 </label>
                 <input
@@ -139,20 +139,20 @@ export function DiscountManager({
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Special launch discount"
-                  className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="mt-1 w-full rounded-2 border border-gray-a6 bg-gray-1 px-4 py-2.5 text-gray-12 placeholder:text-gray-9 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
                 />
               </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-2 font-medium text-gray-12">
                   Discount Type
                 </label>
                 <select
                   value={discountType}
                   onChange={(e) => setDiscountType(e.target.value as DiscountType)}
-                  className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="mt-1 w-full rounded-2 border border-gray-a6 bg-gray-1 px-4 py-2.5 text-gray-12 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
                 >
                   <option value="percentage">Percentage</option>
                   <option value="fixed">Fixed Amount</option>
@@ -160,7 +160,7 @@ export function DiscountManager({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-2 font-medium text-gray-12">
                   {discountType === 'percentage' ? 'Percentage (%)' : 'Amount ($)'}
                 </label>
                 <input
@@ -169,14 +169,14 @@ export function DiscountManager({
                   max={discountType === 'percentage' ? 100 : undefined}
                   value={discountValue}
                   onChange={(e) => setDiscountValue(Number(e.target.value))}
-                  className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="mt-1 w-full rounded-2 border border-gray-a6 bg-gray-1 px-4 py-2.5 text-gray-12 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
                 />
               </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-2 font-medium text-gray-12">
                   Max Uses (optional)
                 </label>
                 <input
@@ -185,12 +185,12 @@ export function DiscountManager({
                   value={maxUses || ''}
                   onChange={(e) => setMaxUses(e.target.value ? Number(e.target.value) : undefined)}
                   placeholder="Unlimited"
-                  className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="mt-1 w-full rounded-2 border border-gray-a6 bg-gray-1 px-4 py-2.5 text-gray-12 placeholder:text-gray-9 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-2 font-medium text-gray-12">
                   Show after X minutes (optional)
                 </label>
                 <input
@@ -199,7 +199,7 @@ export function DiscountManager({
                   value={showAtMinutes || ''}
                   onChange={(e) => setShowAtMinutes(e.target.value ? Number(e.target.value) : undefined)}
                   placeholder="Show immediately"
-                  className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                  className="mt-1 w-full rounded-2 border border-gray-a6 bg-gray-1 px-4 py-2.5 text-gray-12 placeholder:text-gray-9 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
                 />
               </div>
             </div>
@@ -227,10 +227,10 @@ export function DiscountManager({
       {/* Discount List */}
       <div className="space-y-4">
         {discounts.length === 0 && !isCreating && (
-          <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-            <Gift className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">No discount codes yet</h3>
-            <p className="mt-1 text-sm text-gray-500">
+          <div className="rounded-3 border border-dashed border-gray-a6 bg-gray-a2 p-8 text-center">
+            <Gift className="mx-auto h-12 w-12 text-gray-8" />
+            <h3 className="mt-4 text-3 font-medium text-gray-12">No discount codes yet</h3>
+            <p className="mt-1 text-2 text-gray-11">
               Create discount codes to offer special deals during your webinar.
             </p>
           </div>
@@ -239,37 +239,37 @@ export function DiscountManager({
         {discounts.map((discount) => (
           <div
             key={discount.id}
-            className={`rounded-xl border bg-white p-6 ${
-              discount.is_active ? 'border-gray-200' : 'border-gray-100 opacity-60'
+            className={`rounded-3 border bg-gray-a2 p-6 ${
+              discount.is_active ? 'border-gray-a4' : 'border-gray-a3 opacity-60'
             }`}
           >
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-3">
-                  <code className="rounded-lg bg-gray-100 px-3 py-1 font-mono text-lg font-semibold text-gray-900">
+                  <code className="rounded-2 bg-gray-a4 px-3 py-1 font-mono text-3 font-semibold text-gray-12">
                     {discount.code}
                   </code>
                   <button
                     onClick={() => copyCode(discount.code, discount.id)}
-                    className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                    className="rounded-2 p-1.5 text-gray-11 hover:bg-gray-a4 hover:text-gray-12"
                     title="Copy code"
                   >
                     {copiedId === discount.id ? (
-                      <Check className="h-4 w-4 text-green-500" />
+                      <Check className="h-4 w-4 text-green-11" />
                     ) : (
                       <Copy className="h-4 w-4" />
                     )}
                   </button>
-                  <span className={`text-lg font-semibold ${
-                    discount.is_active ? 'text-green-600' : 'text-gray-400'
+                  <span className={`text-3 font-semibold ${
+                    discount.is_active ? 'text-green-11' : 'text-gray-9'
                   }`}>
                     {formatDiscount(discount.discount_type, discount.discount_value)}
                   </span>
                 </div>
                 {discount.description && (
-                  <p className="mt-1 text-sm text-gray-500">{discount.description}</p>
+                  <p className="mt-1 text-2 text-gray-11">{discount.description}</p>
                 )}
-                <div className="mt-2 flex gap-4 text-sm text-gray-500">
+                <div className="mt-2 flex gap-4 text-2 text-gray-11">
                   <span>
                     Used: {discount.times_used}
                     {discount.max_uses && ` / ${discount.max_uses}`}
@@ -283,11 +283,11 @@ export function DiscountManager({
                 <button
                   onClick={() => handleToggleActive(discount.id)}
                   disabled={isPending}
-                  className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                  className="rounded-2 p-2 text-gray-11 hover:bg-gray-a4 hover:text-gray-12"
                   title={discount.is_active ? 'Deactivate' : 'Activate'}
                 >
                   {discount.is_active ? (
-                    <ToggleRight className="h-5 w-5 text-green-500" />
+                    <ToggleRight className="h-5 w-5 text-green-11" />
                   ) : (
                     <ToggleLeft className="h-5 w-5" />
                   )}
@@ -295,7 +295,7 @@ export function DiscountManager({
                 <button
                   onClick={() => handleDelete(discount.id)}
                   disabled={isPending}
-                  className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                  className="rounded-2 p-2 text-gray-11 hover:bg-red-a3 hover:text-red-11"
                   title="Delete"
                 >
                   <Trash2 className="h-4 w-4" />

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { trackEngagement } from '@/app/actions/analytics';
 import type { Poll, PollStatus } from '@/types/database';
 import type { PollWithResults } from '@/types';
 import type { RealtimeChannel } from '@supabase/supabase-js';
@@ -143,6 +144,9 @@ export function useRealtimePolls({
           });
           throw error;
         }
+
+        // Track engagement event
+        trackEngagement(webinarId, registrationId, 'poll_response', { poll_id: pollId }).catch(console.error);
       } catch (err) {
         console.error('Failed to vote:', err);
         throw err;
@@ -150,7 +154,7 @@ export function useRealtimePolls({
         setIsVoting(false);
       }
     },
-    [registrationId, isVoting, responses]
+    [webinarId, registrationId, isVoting, responses]
   );
 
   const hasVoted = useCallback(

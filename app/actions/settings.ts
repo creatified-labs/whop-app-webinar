@@ -17,7 +17,8 @@ import {
   checkCompanyRole,
   syncCompanyMembership,
 } from '@/lib/data/companies';
-import type { CompanyRole, CompanyUpdate } from '@/types/database';
+import { upsertEngagementConfig } from '@/lib/data/engagement';
+import type { CompanyRole, CompanyUpdate, EngagementConfigUpdate } from '@/types/database';
 import type { ApiResponse } from '@/types';
 
 /**
@@ -239,6 +240,27 @@ export async function updateDefaultWebinarSettings(
     return { data: null, error: null, success: true };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to update webinar settings';
+    return { data: null, error: message, success: false };
+  }
+}
+
+// ============================================
+// Engagement Config Actions
+// ============================================
+
+/**
+ * Update engagement scoring configuration
+ */
+export async function updateEngagementConfig(
+  companyId: string,
+  config: EngagementConfigUpdate
+): Promise<ApiResponse<null>> {
+  try {
+    await upsertEngagementConfig(companyId, config);
+
+    return { data: null, error: null, success: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to update engagement config';
     return { data: null, error: message, success: false };
   }
 }

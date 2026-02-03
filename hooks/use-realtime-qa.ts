@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { trackEngagement } from '@/app/actions/analytics';
 import type { QAQuestion } from '@/types/database';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -122,6 +123,9 @@ export function useRealtimeQA({
         if (error) {
           throw error;
         }
+
+        // Track engagement event
+        trackEngagement(webinarId, registrationId, 'qa_submit').catch(console.error);
       } catch (err) {
         console.error('Failed to submit question:', err);
         throw err;
@@ -178,6 +182,9 @@ export function useRealtimeQA({
 
           // Increment count
           await supabase.rpc('increment_upvote_count', { question_id: questionId });
+
+          // Track engagement event
+          trackEngagement(webinarId, registrationId, 'qa_upvote').catch(console.error);
         }
       } catch (err) {
         // Revert on error
@@ -190,7 +197,7 @@ export function useRealtimeQA({
         console.error('Failed to toggle upvote:', err);
       }
     },
-    [registrationId]
+    [webinarId, registrationId]
   );
 
   return {

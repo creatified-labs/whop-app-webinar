@@ -18,13 +18,18 @@ import {
   getWebinarById,
   getWebinarHosts,
   getCompanyById,
+  validateDiscountCode,
+  checkFreeAccessCode,
+  incrementDiscountCodeUse,
+  grantFreeAccess,
+  calculateFinalPrice,
 } from '@/lib/data';
 import { queueConfirmationEmail, queueReminderEmails, isEmailEnabled } from '@/lib/email';
 import {
   registrationSchema,
   type RegistrationInput,
 } from '@/lib/validations/webinar';
-import type { Registration } from '@/types/database';
+import type { Registration, DiscountCode } from '@/types/database';
 import type { ApiResponse } from '@/types';
 
 // ============================================
@@ -68,7 +73,54 @@ export async function registerForWebinar(
       };
     }
 
-    // Create registration
+    // Handle discount code validation for paid webinars
+    let discountCodeData: DiscountCode | null = null;
+    let paymentStatus: 'not_required' | 'pending' | 'completed' = 'not_required';
+    let paymentAmountCents: number | null = null;
+    let discountAmountCents = 0;
+
+    if (webinar.is_paid && webinar.price_cents) {
+      // Validate discount code if provided
+      if (validatedData.discount_code) {
+        discountCodeData = await validateDiscountCode(webinar.id, validatedData.discount_code);
+        if (!discountCodeData) {
+          throw new Error('Invalid or expired discount code');
+        }
+      }
+
+      // Check if code grants free access
+      if (discountCodeData?.allows_free_access) {
+        // Free access granted
+        paymentStatus = 'completed';
+        paymentAmountCents = 0;
+        discountAmountCents = webinar.price_cents;
+      } else if (discountCodeData) {
+        // Calculate discounted price
+        const priceResult = calculateFinalPrice(
+          webinar.price_cents,
+          discountCodeData.discount_type,
+          discountCodeData.discount_value
+        );
+
+        if (priceResult.finalPriceCents === 0) {
+          // Full discount - free access
+          paymentStatus = 'completed';
+          paymentAmountCents = 0;
+          discountAmountCents = priceResult.discountAmountCents;
+        } else {
+          // Partial discount - still needs payment
+          paymentStatus = 'pending';
+          paymentAmountCents = priceResult.finalPriceCents;
+          discountAmountCents = priceResult.discountAmountCents;
+        }
+      } else {
+        // No discount - full price
+        paymentStatus = 'pending';
+        paymentAmountCents = webinar.price_cents;
+      }
+    }
+
+    // Create registration with payment status
     const registration = await createRegistrationData(webinar.id, {
       email: validatedData.email.toLowerCase(),
       name: validatedData.name || null,
@@ -79,7 +131,21 @@ export async function registerForWebinar(
       utm_medium: validatedData.utm_medium || null,
       utm_content: validatedData.utm_content || null,
       custom_fields: validatedData.custom_fields || null,
+      payment_status: paymentStatus,
+      payment_amount_cents: paymentAmountCents,
+      discount_code_id: discountCodeData?.id || null,
+      discount_amount_cents: discountAmountCents,
     });
+
+    // If discount code was used, increment its use count
+    if (discountCodeData) {
+      await incrementDiscountCodeUse(discountCodeData.id);
+    }
+
+    // If free access was granted, mark as such
+    if (paymentStatus === 'completed' && discountCodeData?.allows_free_access) {
+      await grantFreeAccess(registration.id, discountCodeData.id);
+    }
 
     // Queue confirmation and reminder emails
     if (isEmailEnabled() && webinar.send_confirmation_email) {
@@ -132,6 +198,31 @@ export async function registerForWebinar(
     return { data: registration, error: null, success: true };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to register';
+    return { data: null, error: message, success: false };
+  }
+}
+
+/**
+ * Validate a discount code (public action for registration form)
+ */
+export async function validateDiscountCodeAction(
+  slug: string,
+  code: string
+): Promise<ApiResponse<DiscountCode>> {
+  try {
+    const webinar = await getWebinarBySlug(slug);
+    if (!webinar) {
+      throw new Error('Webinar not found');
+    }
+
+    const discountCode = await validateDiscountCode(webinar.id, code);
+    if (!discountCode) {
+      throw new Error('Invalid or expired discount code');
+    }
+
+    return { data: discountCode, error: null, success: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to validate discount code';
     return { data: null, error: message, success: false };
   }
 }

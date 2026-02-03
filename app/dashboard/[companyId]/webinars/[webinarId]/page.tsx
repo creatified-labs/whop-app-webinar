@@ -4,16 +4,14 @@ import { notFound } from 'next/navigation';
 import {
   ArrowLeft,
   ExternalLink,
-  Play,
-  Square,
-  Send,
   Users,
   BarChart3,
   Gift,
   MessageCircle,
   Clock,
   Calendar,
-  Copy,
+  ChevronRight,
+  Radio,
 } from 'lucide-react';
 import { Card, Heading, Text, Badge, Button } from '@whop/react/components';
 import { whopsdk } from '@/lib/whop-sdk';
@@ -21,6 +19,8 @@ import { getWebinarWithDetails } from '@/lib/data/webinars';
 import { getRegistrationCount } from '@/lib/data/registrations';
 import { formatWebinarDate, formatDuration } from '@/lib/utils/date';
 import { WebinarForm } from '@/components/dashboard/webinar-form';
+import { WebinarStatusActions } from '@/components/dashboard/webinar-status-actions';
+import { CopyUrlButton, WebinarUrl } from '@/components/dashboard/copy-url-button';
 import type { WebinarStatus } from '@/types/database';
 
 interface WebinarDetailPageProps {
@@ -100,24 +100,7 @@ export default async function WebinarDetailPage({ params }: WebinarDetailPagePro
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            {webinar.status === 'draft' && (
-              <Button size="2" variant="solid">
-                <Send className="h-4 w-4" />
-                Publish
-              </Button>
-            )}
-            {webinar.status === 'scheduled' && (
-              <Button size="2" variant="solid" color="green">
-                <Play className="h-4 w-4" />
-                Go Live
-              </Button>
-            )}
-            {webinar.status === 'live' && (
-              <Button size="2" variant="soft" color="gray">
-                <Square className="h-4 w-4" />
-                End Webinar
-              </Button>
-            )}
+            <WebinarStatusActions webinarId={webinar.id} status={webinar.status} />
             {webinar.status !== 'draft' && (
               <Link href={`/webinar/${webinar.slug}`} target="_blank">
                 <Button size="2" variant="soft" color="gray">
@@ -135,21 +118,20 @@ export default async function WebinarDetailPage({ params }: WebinarDetailPagePro
             <Text size="2" color="gray">
               Public URL:
             </Text>
-            <code className="flex-1 truncate rounded-1 bg-gray-a3 px-3 py-1.5 text-2 text-gray-12">
-              {typeof window !== 'undefined' ? window.location.origin : ''}/webinar/{webinar.slug}
-            </code>
-            <button
-              type="button"
-              className="rounded-2 p-2 text-gray-11 transition-colors hover:bg-gray-a3 hover:text-gray-12"
-            >
-              <Copy className="h-4 w-4" />
-            </button>
+            <WebinarUrl slug={webinar.slug} />
+            <CopyUrlButton slug={webinar.slug} />
           </div>
         )}
       </Card>
 
       {/* Quick Links */}
-      <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-5">
+        <QuickLinkCard
+          href={`/dashboard/${companyId}/webinars/${webinarId}/broadcast`}
+          icon={Radio}
+          label="Broadcast"
+          color="red"
+        />
         <QuickLinkCard
           href={`/dashboard/${companyId}/webinars/${webinarId}/registrations`}
           icon={Users}
@@ -198,36 +180,62 @@ interface QuickLinkCardProps {
   icon: typeof Users;
   label: string;
   count?: number;
-  color: 'blue' | 'purple' | 'orange' | 'green';
+  color: 'blue' | 'purple' | 'orange' | 'green' | 'red';
 }
 
 const colorStyles = {
-  blue: 'bg-blue-a3 text-blue-11',
-  purple: 'bg-purple-a3 text-purple-11',
-  orange: 'bg-orange-a3 text-orange-11',
-  green: 'bg-green-a3 text-green-11',
+  blue: {
+    icon: 'bg-blue-a3 text-blue-11 group-hover:bg-blue-a4',
+    border: 'hover:border-blue-a6',
+    text: 'group-hover:text-blue-11',
+  },
+  purple: {
+    icon: 'bg-purple-a3 text-purple-11 group-hover:bg-purple-a4',
+    border: 'hover:border-purple-a6',
+    text: 'group-hover:text-purple-11',
+  },
+  orange: {
+    icon: 'bg-orange-a3 text-orange-11 group-hover:bg-orange-a4',
+    border: 'hover:border-orange-a6',
+    text: 'group-hover:text-orange-11',
+  },
+  green: {
+    icon: 'bg-green-a3 text-green-11 group-hover:bg-green-a4',
+    border: 'hover:border-green-a6',
+    text: 'group-hover:text-green-11',
+  },
+  red: {
+    icon: 'bg-red-a3 text-red-11 group-hover:bg-red-a4',
+    border: 'hover:border-red-a6',
+    text: 'group-hover:text-red-11',
+  },
 };
 
 function QuickLinkCard({ href, icon: Icon, label, count, color }: QuickLinkCardProps) {
+  const styles = colorStyles[color];
+
   return (
     <Link href={href}>
-      <Card size="2" className="group transition-shadow hover:shadow-3">
+      <div
+        className={`group flex cursor-pointer items-center justify-between rounded-3 border-2 border-gray-a4 bg-gray-a2 p-4 transition-all duration-200 hover:scale-[1.02] hover:bg-gray-a3 hover:shadow-3 active:scale-[0.98] ${styles.border}`}
+      >
         <div className="flex items-center gap-4">
-          <div className={`rounded-2 p-3 ${colorStyles[color]}`}>
+          <div className={`rounded-2 p-3 transition-colors ${styles.icon}`}>
             <Icon className="h-5 w-5" />
           </div>
           <div className="flex flex-col">
-            <span className="text-1 text-gray-11">
+            <span className="text-2 font-medium text-gray-12">
               {label}
             </span>
             {count !== undefined && (
-              <span className="text-4 font-bold text-gray-12 transition-colors group-hover:text-accent-11">
-                {count}
+              <span className={`text-1 text-gray-11 transition-colors ${styles.text}`}>
+                {count} total
               </span>
             )}
           </div>
         </div>
-      </Card>
+        <ChevronRight className={`h-5 w-5 text-gray-8 transition-all group-hover:translate-x-0.5 ${styles.text}`} />
+      </div>
     </Link>
   );
 }

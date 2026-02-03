@@ -9,11 +9,13 @@
 		"lint": "biome lint"
 	},
 	"dependencies": {
+		"@mux/mux-node": "^12.8.1",
 		"@supabase/ssr": "^0.8.0",
 		"@supabase/supabase-js": "^2.93.2",
 		"@vercel/functions": "^3.1.4",
 		"@whop/react": "0.3.0",
 		"@whop/sdk": "0.0.3",
+		"@zoom/meetingsdk": "^5.1.0",
 		"date-fns": "^4.1.0",
 		"date-fns-tz": "^3.2.0",
 		"lucide-react": "^0.563.0",

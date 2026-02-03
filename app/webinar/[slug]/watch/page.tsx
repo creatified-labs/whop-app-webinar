@@ -1,8 +1,10 @@
 import { notFound, redirect } from 'next/navigation';
 import type { Metadata } from 'next';
-import { getWebinarPublicView } from '@/lib/data/webinars';
+import { getWebinarPublicView, getWebinarById } from '@/lib/data/webinars';
 import { getRegistrationByEmail } from '@/lib/data/registrations';
+import { canAccessWebinar } from '@/lib/data/payments';
 import { WatchPageClient } from './watch-client';
+import { PaymentGate } from '@/components/funnel/payment-gate';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -52,10 +54,32 @@ export default async function WatchPage({ params, searchParams }: PageProps) {
     notFound();
   }
 
-  // Determine video URL
-  const videoUrl = webinar.status === 'ended'
-    ? (webinar.cta_url || '') // Use replay/CTA URL for ended webinars
-    : ''; // Video URL will come from webinar.video_url (not in public view)
+  // Check payment access for paid webinars
+  const hasAccess = await canAccessWebinar(registration.id);
+  if (!hasAccess) {
+    // Get full webinar data for price display
+    const fullWebinar = await getWebinarById(webinar.id);
+    const priceCents = fullWebinar?.price_cents || 0;
+
+    return (
+      <PaymentGate
+        webinarSlug={slug}
+        registrationId={registration.id}
+        webinarTitle={webinar.title}
+        priceCents={priceCents}
+        paymentStatus={registration.payment_status as 'pending' | 'not_required'}
+      />
+    );
+  }
+
+  // Determine video URL based on status
+  let videoUrl = '';
+  if (webinar.status === 'ended') {
+    // Use replay URL for ended webinars, fall back to video_url
+    videoUrl = webinar.replay_url || webinar.video_url || '';
+  } else {
+    videoUrl = webinar.video_url || '';
+  }
 
   return (
     <WatchPageClient

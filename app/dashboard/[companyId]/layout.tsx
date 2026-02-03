@@ -37,8 +37,9 @@ export default async function DashboardLayout({
     whopsdk.users.retrieve(userId),
   ]);
 
-  // Sync company membership to our database
-  await syncCompanyMembership(
+  // Sync company membership to our database (non-blocking for faster page loads)
+  // This runs in the background - sync errors won't block page render
+  syncCompanyMembership(
     company.id,
     user.id,
     {
@@ -54,12 +55,12 @@ export default async function DashboardLayout({
       profile_pic_url: user.profile_picture?.url ?? null,
     },
     'owner'
-  );
+  ).catch(console.error);
 
   return (
     <div className="min-h-screen bg-gray-1">
       {/* Header */}
-      <header className="sticky top-0 z-30 border-b border-gray-a4 bg-gray-1/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 glass-heavy shadow-glass-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Left: Logo */}
@@ -111,7 +112,7 @@ export default async function DashboardLayout({
         </div>
 
         {/* Mobile Navigation */}
-        <div className="border-t border-gray-a3 bg-gray-1/80 px-4 py-2 md:hidden">
+        <div className="border-t border-gray-a3/30 glass-light px-4 py-2 md:hidden">
           <MobileDashboardNav companyId={companyId} />
         </div>
       </header>

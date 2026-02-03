@@ -37,11 +37,18 @@ export function WebinarPerformanceTable({ webinars, companyId }: WebinarPerforma
   }
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
+    const date = new Date(dateStr);
+    const dateFormatted = date.toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
     });
+    const timeFormatted = date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+    return `${dateFormatted} at ${timeFormatted}`;
   };
 
   return (

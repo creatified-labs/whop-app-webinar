@@ -132,7 +132,7 @@ export function DefaultWebinarSettings({
               <div className="rounded-2 bg-blue-a3 p-2">
                 <MessageSquare className="h-4 w-4 text-blue-11" />
               </div>
-              <div>
+              <div className="flex flex-col">
                 <Text size="2" weight="medium">
                   Chat
                 </Text>
@@ -152,7 +152,7 @@ export function DefaultWebinarSettings({
               <div className="rounded-2 bg-purple-a3 p-2">
                 <HelpCircle className="h-4 w-4 text-purple-11" />
               </div>
-              <div>
+              <div className="flex flex-col">
                 <Text size="2" weight="medium">
                   Q&A
                 </Text>
@@ -172,7 +172,7 @@ export function DefaultWebinarSettings({
               <div className="rounded-2 bg-green-a3 p-2">
                 <BarChart3 className="h-4 w-4 text-green-11" />
               </div>
-              <div>
+              <div className="flex flex-col">
                 <Text size="2" weight="medium">
                   Polls
                 </Text>
@@ -192,7 +192,7 @@ export function DefaultWebinarSettings({
               <div className="rounded-2 bg-orange-a3 p-2">
                 <Smile className="h-4 w-4 text-orange-11" />
               </div>
-              <div>
+              <div className="flex flex-col">
                 <Text size="2" weight="medium">
                   Reactions
                 </Text>

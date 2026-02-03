@@ -52,7 +52,7 @@ export function StatsCard({
   const styles = colorStyles[color];
 
   return (
-    <Card size="2">
+    <Card size="2" className="glass-depth shadow-glass highlight-top glass-interactive">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <Text size="2" color="gray" weight="medium">

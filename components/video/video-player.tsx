@@ -2,18 +2,25 @@
 
 import { useState, useCallback, type ComponentType } from 'react';
 import dynamic from 'next/dynamic';
-import type { VideoType } from '@/types/database';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ReactPlayer = dynamic(() => import('react-player'), { ssr: false }) as ComponentType<any>;
 
+export interface VideoProgress {
+  played: number; // Fraction 0-1
+  playedSeconds: number;
+  loaded: number; // Fraction 0-1
+  loadedSeconds: number;
+}
+
 interface VideoPlayerProps {
   url: string;
-  videoType: VideoType;
   onReady?: () => void;
   onPlay?: () => void;
   onPause?: () => void;
   onEnded?: () => void;
+  onProgress?: (progress: VideoProgress) => void;
+  onDuration?: (duration: number) => void;
   autoplay?: boolean;
   muted?: boolean;
   controls?: boolean;
@@ -29,6 +36,8 @@ export function VideoPlayer({
   onPlay,
   onPause,
   onEnded,
+  onProgress,
+  onDuration,
   autoplay = false,
   muted = false,
   controls = true,
@@ -74,7 +83,10 @@ export function VideoPlayer({
         onPlay={onPlay}
         onPause={onPause}
         onEnded={onEnded}
+        onProgress={onProgress}
+        onDuration={onDuration}
         onError={handleError}
+        progressInterval={1000}
         style={{ position: 'absolute', top: 0, left: 0 }}
       />
     </div>

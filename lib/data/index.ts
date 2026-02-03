@@ -100,7 +100,24 @@ export {
   incrementDiscountCodeUse,
   validateDiscountCode,
   getActiveDiscountCodes,
+  checkFreeAccessCode,
+  getFreeAccessCodes,
 } from './discounts';
+
+// Payment functions
+export {
+  hasCompletedPayment,
+  canAccessWebinar,
+  getRegistrationPaymentDetails,
+  markPaymentPending,
+  markPaymentCompleted,
+  markPaymentRefunded,
+  grantFreeAccess,
+  getRegistrationByWhopPaymentId,
+  getPendingPayments,
+  getWebinarPaymentStats,
+  calculateFinalPrice,
+} from './payments';
 
 // Chat functions
 export {
@@ -151,3 +168,45 @@ export {
   getTrafficSources,
 } from './analytics';
 export type { DateRange, CompanyStats, RegistrationTrendPoint, WebinarPerformance, TrafficSource } from './analytics';
+
+// Engagement functions
+export {
+  trackEngagementEvent,
+  getRegistrationEngagementEvents,
+  getWebinarEngagementEvents,
+  getRegistrationEngagementScore,
+  getWebinarEngagementStats,
+  getEngagementConfig,
+  getEngagementConfigWithDefaults,
+  upsertEngagementConfig,
+  resetEngagementConfig,
+} from './engagement';
+export type { WebinarEngagementStats } from './engagement';
+
+// Watch time functions
+export {
+  startWatchSession,
+  updateWatchSession,
+  updateWatchProgress,
+  endWatchSession,
+  getActiveWatchSession,
+  getOrCreateWatchSession,
+  getRegistrationWatchSessions,
+  getRegistrationTotalWatchTime,
+  getRegistrationHighestMilestone,
+  getWebinarWatchTimeStats,
+} from './watch-time';
+export type { WebinarWatchTimeStats } from './watch-time';
+
+// Lead scoring functions
+export {
+  calculateLeadScore,
+  getLeadScore,
+  getOrCalculateLeadScore,
+  recalculateWebinarLeadScores,
+  getLeadScoreLeaderboard,
+  getLeadScoreDistribution,
+  getLeadScoreSummary,
+  exportLeadScores,
+} from './lead-scoring';
+export type { LeadScoreWithRegistration, LeadScoreDistribution, LeadScoreSummary } from './lead-scoring';

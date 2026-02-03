@@ -238,8 +238,10 @@ export async function publishWebinar(webinarId: string): Promise<ApiResponse<Web
       throw new Error('Only draft webinars can be published');
     }
 
-    // Validate required fields for publishing
-    if (!webinar.video_url) {
+    // Validate required fields for publishing based on video type
+    // Whop Live and Google Meet don't require a video URL upfront
+    const requiresVideoUrl = webinar.video_type === 'url';
+    if (requiresVideoUrl && !webinar.video_url) {
       throw new Error('Please add a video URL before publishing');
     }
 
@@ -286,6 +288,26 @@ export async function endWebinar(webinarId: string): Promise<ApiResponse<Webinar
     return changeWebinarStatus(webinarId, 'ended');
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to end webinar';
+    return { data: null, error: message, success: false };
+  }
+}
+
+/**
+ * Reconnect a webinar (go live again after ending)
+ */
+export async function reconnectWebinar(webinarId: string): Promise<ApiResponse<Webinar>> {
+  try {
+    // Verify access
+    const { webinar } = await verifyWebinarAccess(webinarId);
+
+    // Can only reconnect ended webinars
+    if (webinar.status !== 'ended') {
+      throw new Error('Only ended webinars can be reconnected');
+    }
+
+    return changeWebinarStatus(webinarId, 'live');
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to reconnect webinar';
     return { data: null, error: message, success: false };
   }
 }
@@ -419,6 +441,54 @@ export async function reorderHosts(
     return { data: null, error: null, success: true };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Failed to reorder hosts';
+    return { data: null, error: message, success: false };
+  }
+}
+
+// ============================================
+// Pricing Configuration
+// ============================================
+
+export interface PricingConfigInput {
+  is_paid: boolean;
+  price_cents?: number | null;
+  whop_plan_id?: string | null;
+  allow_free_with_code?: boolean;
+}
+
+/**
+ * Update webinar pricing configuration
+ */
+export async function updateWebinarPricing(
+  webinarId: string,
+  input: PricingConfigInput
+): Promise<ApiResponse<Webinar>> {
+  try {
+    // Verify access
+    await verifyWebinarAccess(webinarId);
+
+    // Validate pricing data
+    if (input.is_paid && !input.price_cents) {
+      throw new Error('Price is required for paid webinars');
+    }
+
+    if (input.is_paid && !input.whop_plan_id) {
+      throw new Error('Whop plan ID is required for paid webinars');
+    }
+
+    // Update webinar pricing
+    const webinar = await updateWebinarData(webinarId, {
+      is_paid: input.is_paid,
+      price_cents: input.is_paid ? input.price_cents : null,
+      whop_plan_id: input.is_paid ? input.whop_plan_id : null,
+      allow_free_with_code: input.is_paid ? (input.allow_free_with_code ?? false) : false,
+    });
+
+    revalidatePath(`/dashboard/[companyId]/webinars/${webinarId}`);
+
+    return { data: webinar, error: null, success: true };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to update pricing';
     return { data: null, error: message, success: false };
   }
 }

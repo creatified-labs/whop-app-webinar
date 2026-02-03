@@ -107,7 +107,14 @@ export default async function RegisterPage({ params }: PageProps) {
           style={{ animationDelay: "0.1s" }}
         >
           <div className="funnel-glass rounded-funnel-2xl p-6 shadow-funnel-lg">
-            <RegistrationForm slug={slug} ctaText={webinar.cta_text} />
+            <RegistrationForm
+              slug={slug}
+              ctaText={webinar.cta_text}
+              isPaid={webinar.is_paid}
+              priceCents={webinar.price_cents}
+              allowFreeWithCode={webinar.allow_free_with_code}
+              registrationFields={webinar.registration_fields}
+            />
           </div>
         </div>
 

@@ -4,7 +4,7 @@ import { Plus, Calendar } from 'lucide-react';
 import { Card, Heading, Text, Button } from '@whop/react/components';
 import { whopsdk } from '@/lib/whop-sdk';
 import { getCompanyByWhopId } from '@/lib/data/companies';
-import { getCompanyWebinars } from '@/lib/data/webinars';
+import { getCompanyWebinars, getWebinarStatusCounts } from '@/lib/data/webinars';
 import { WebinarList } from '@/components/dashboard/webinar-card';
 import { WebinarFilters } from '@/components/dashboard/webinar-filters';
 import type { WebinarStatus } from '@/types/database';
@@ -47,30 +47,17 @@ export default async function WebinarsPage({ params, searchParams }: WebinarsPag
   const offset = (currentPage - 1) * ITEMS_PER_PAGE;
   const statusFilter = status && status !== 'all' ? (status as WebinarStatus) : undefined;
 
-  // Get webinars with filters
-  const { webinars, total } = await getCompanyWebinars(company.id, {
-    status: statusFilter,
-    search,
-    limit: ITEMS_PER_PAGE,
-    offset,
-  });
-
-  // Get counts for each status (for tabs)
-  const [allCount, draftCount, scheduledCount, liveCount, endedCount] = await Promise.all([
-    getCompanyWebinars(company.id, { search }).then((r) => r.total),
-    getCompanyWebinars(company.id, { status: 'draft', search }).then((r) => r.total),
-    getCompanyWebinars(company.id, { status: 'scheduled', search }).then((r) => r.total),
-    getCompanyWebinars(company.id, { status: 'live', search }).then((r) => r.total),
-    getCompanyWebinars(company.id, { status: 'ended', search }).then((r) => r.total),
+  // Get webinars and counts in parallel (skip status check for faster loading)
+  const [{ webinars, total }, counts] = await Promise.all([
+    getCompanyWebinars(company.id, {
+      status: statusFilter,
+      search,
+      limit: ITEMS_PER_PAGE,
+      offset,
+      skipStatusCheck: true, // Skip status check for list views - faster loading
+    }),
+    getWebinarStatusCounts(company.id, search), // Single query for all counts
   ]);
-
-  const counts = {
-    all: allCount,
-    draft: draftCount,
-    scheduled: scheduledCount,
-    live: liveCount,
-    ended: endedCount,
-  };
 
   const totalPages = Math.ceil(total / ITEMS_PER_PAGE);
 

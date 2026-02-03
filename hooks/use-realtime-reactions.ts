@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { trackEngagement } from '@/app/actions/analytics';
 import type { Reaction } from '@/types/database';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -104,6 +105,9 @@ export function useRealtimeReactions({
         if (error) {
           throw error;
         }
+
+        // Track engagement event
+        trackEngagement(webinarId, registrationId, 'reaction', { emoji }).catch(console.error);
       } catch (err) {
         console.error('Failed to send reaction:', err);
       } finally {

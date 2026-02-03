@@ -34,19 +34,19 @@
 
 /* Dark mode */
 .dark {
-  /* Backgrounds */
-  --funnel-bg-primary: 9 9 11;
-  --funnel-bg-card: 24 24 27;
-  --funnel-bg-elevated: 39 39 42;
+  /* Backgrounds - slightly lighter for better visibility */
+  --funnel-bg-primary: 15 15 20;
+  --funnel-bg-card: 32 32 38;
+  --funnel-bg-elevated: 45 45 52;
 
   /* Text colors */
   --funnel-text-primary: 250 250 250;
-  --funnel-text-secondary: 161 161 170;
-  --funnel-text-muted: 113 113 122;
+  --funnel-text-secondary: 180 180 190;
+  --funnel-text-muted: 130 130 145;
 
-  /* Borders */
-  --funnel-border-default: 63 63 70;
-  --funnel-border-subtle: 39 39 42;
+  /* Borders - more visible */
+  --funnel-border-default: 75 75 85;
+  --funnel-border-subtle: 55 55 65;
 
   /* Accent colors - slightly lighter for dark mode */
   --funnel-accent: 129 140 248;
@@ -75,6 +75,232 @@ body {
 .dark .funnel-glass {
   background: rgb(var(--funnel-bg-card) / 0.5);
   border-color: rgb(255 255 255 / 0.1);
+}
+
+/* ===== Enhanced Glassmorphism System ===== */
+
+/* Light glass - for overlays and subtle backgrounds */
+.glass-light {
+  background: rgb(var(--funnel-bg-card) / 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgb(var(--funnel-border-default) / 0.3);
+}
+
+.dark .glass-light {
+  background: rgb(var(--funnel-bg-card) / 0.6);
+  border-color: rgb(255 255 255 / 0.1);
+}
+
+/* Standard glass - primary cards and containers */
+.glass {
+  background: rgb(var(--funnel-bg-card) / 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgb(var(--funnel-border-default) / 0.4);
+}
+
+.dark .glass {
+  background: rgb(var(--funnel-bg-card) / 0.7);
+  border-color: rgb(255 255 255 / 0.12);
+}
+
+/* Heavy glass - prominent elements, modals, dropdowns, headers */
+.glass-heavy {
+  background: rgb(var(--funnel-bg-card) / 0.8);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border: 1px solid rgb(var(--funnel-border-default) / 0.5);
+}
+
+.dark .glass-heavy {
+  background: rgb(var(--funnel-bg-card) / 0.85);
+  border-color: rgb(255 255 255 / 0.15);
+}
+
+/* Frosted glass with depth gradient + inner highlight */
+.glass-depth {
+  background: linear-gradient(
+    135deg,
+    rgb(var(--funnel-bg-card) / 0.7) 0%,
+    rgb(var(--funnel-bg-card) / 0.5) 100%
+  );
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
+  border: 1px solid rgb(var(--funnel-border-default) / 0.4);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.1),
+    0 4px 24px -4px rgb(0 0 0 / 0.1);
+}
+
+.dark .glass-depth {
+  background: linear-gradient(
+    135deg,
+    rgb(var(--funnel-bg-card) / 0.8) 0%,
+    rgb(var(--funnel-bg-card) / 0.65) 100%
+  );
+  border-color: rgb(255 255 255 / 0.15);
+  box-shadow:
+    inset 0 1px 0 0 rgb(255 255 255 / 0.08),
+    0 4px 24px -4px rgb(0 0 0 / 0.5);
+}
+
+/* ===== Layered Shadow System for Depth ===== */
+
+/* Subtle lift shadow */
+.shadow-glass-sm {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.03),
+    0 2px 4px rgb(0 0 0 / 0.03),
+    0 4px 8px rgb(0 0 0 / 0.03);
+}
+
+.dark .shadow-glass-sm {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.1),
+    0 2px 4px rgb(0 0 0 / 0.1),
+    0 4px 8px rgb(0 0 0 / 0.1);
+}
+
+/* Standard card shadow with depth */
+.shadow-glass {
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 0.02),
+    0 4px 8px rgb(0 0 0 / 0.04),
+    0 8px 16px rgb(0 0 0 / 0.04),
+    0 16px 32px rgb(0 0 0 / 0.02);
+}
+
+.dark .shadow-glass {
+  box-shadow:
+    0 2px 4px rgb(0 0 0 / 0.1),
+    0 4px 8px rgb(0 0 0 / 0.15),
+    0 8px 16px rgb(0 0 0 / 0.15),
+    0 16px 32px rgb(0 0 0 / 0.1);
+}
+
+/* Elevated shadow for modals/popovers */
+.shadow-glass-lg {
+  box-shadow:
+    0 4px 8px rgb(0 0 0 / 0.04),
+    0 8px 16px rgb(0 0 0 / 0.06),
+    0 16px 32px rgb(0 0 0 / 0.06),
+    0 32px 64px rgb(0 0 0 / 0.04);
+}
+
+.dark .shadow-glass-lg {
+  box-shadow:
+    0 4px 8px rgb(0 0 0 / 0.15),
+    0 8px 16px rgb(0 0 0 / 0.2),
+    0 16px 32px rgb(0 0 0 / 0.2),
+    0 32px 64px rgb(0 0 0 / 0.15);
+}
+
+/* ===== Inner Highlight System ===== */
+
+/* Top edge highlight - simulates light from above */
+.highlight-top {
+  position: relative;
+}
+
+.highlight-top::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0.15) 0%,
+    transparent 50%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.dark .highlight-top::before {
+  background: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0.08) 0%,
+    transparent 50%
+  );
+}
+
+/* Corner highlight - premium corner glow */
+.highlight-corner {
+  position: relative;
+  overflow: hidden;
+}
+
+.highlight-corner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100px;
+  height: 100px;
+  background: radial-gradient(
+    circle at top left,
+    rgb(255 255 255 / 0.15) 0%,
+    transparent 70%
+  );
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.dark .highlight-corner::before {
+  background: radial-gradient(
+    circle at top left,
+    rgb(255 255 255 / 0.08) 0%,
+    transparent 70%
+  );
+}
+
+/* ===== Interactive Glass States ===== */
+
+/* Hover lift effect for cards */
+.glass-interactive {
+  transition: all 0.2s ease-out;
+}
+
+.glass-interactive:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 4px 8px rgb(0 0 0 / 0.04),
+    0 8px 16px rgb(0 0 0 / 0.06),
+    0 16px 32px rgb(0 0 0 / 0.06);
+}
+
+.dark .glass-interactive:hover {
+  box-shadow:
+    0 4px 8px rgb(0 0 0 / 0.15),
+    0 8px 16px rgb(0 0 0 / 0.2),
+    0 16px 32px rgb(0 0 0 / 0.2);
+}
+
+/* Active/pressed state */
+.glass-active:active {
+  transform: translateY(0);
+  box-shadow:
+    inset 0 2px 4px rgb(0 0 0 / 0.05),
+    0 1px 2px rgb(0 0 0 / 0.05);
+}
+
+/* Mobile performance - reduce blur on smaller screens */
+@media (max-width: 768px) {
+  .glass,
+  .glass-depth,
+  .glass-heavy {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
 }
 
 /* Gradient text utility */

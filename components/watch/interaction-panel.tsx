@@ -87,9 +87,9 @@ export function InteractionPanel({
   }
 
   return (
-    <div className="flex h-full flex-col bg-funnel-bg-card/50">
+    <div className="flex h-full flex-col glass">
       {/* Tabs with Animated Indicator */}
-      <div className="relative border-b border-funnel-border/50">
+      <div className="relative glass-heavy border-b border-funnel-border/30">
         <div className="flex">
           {enabledTabs.map((tab) => {
             const Icon = tab.icon;

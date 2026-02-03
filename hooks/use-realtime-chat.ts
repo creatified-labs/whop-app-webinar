@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { trackEngagement } from '@/app/actions/analytics';
 import type { ChatMessage } from '@/types/database';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -104,6 +105,9 @@ export function useRealtimeChat({
         if (error) {
           throw error;
         }
+
+        // Track engagement event
+        trackEngagement(webinarId, registrationId, 'chat_message').catch(console.error);
       } catch (err) {
         console.error('Failed to send message:', err);
         throw err;

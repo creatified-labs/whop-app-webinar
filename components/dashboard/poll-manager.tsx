@@ -103,9 +103,9 @@ export function PollManager({
   };
 
   const statusColors: Record<PollStatus, string> = {
-    draft: 'bg-gray-100 text-gray-700',
-    active: 'bg-green-100 text-green-700',
-    closed: 'bg-blue-100 text-blue-700',
+    draft: 'bg-gray-a3 text-gray-11',
+    active: 'bg-green-a3 text-green-11',
+    closed: 'bg-blue-a3 text-blue-11',
   };
 
   return (
@@ -120,11 +120,11 @@ export function PollManager({
 
       {/* Create Form */}
       {isCreating && (
-        <div className="rounded-xl border border-gray-200 bg-white p-6">
-          <h3 className="mb-4 font-semibold text-gray-900">New Poll</h3>
+        <div className="glass-depth shadow-glass rounded-3 p-6">
+          <h3 className="mb-4 font-semibold text-gray-12">New Poll</h3>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-2 font-medium text-gray-12">
                 Question *
               </label>
               <input
@@ -132,12 +132,12 @@ export function PollManager({
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 placeholder="What would you like to ask?"
-                className="mt-1 w-full rounded-lg border border-gray-300 px-4 py-2.5 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                className="mt-1 w-full rounded-2 border border-gray-a6 bg-gray-1 px-4 py-2.5 text-gray-12 placeholder:text-gray-9 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-2 font-medium text-gray-12">
                 Options (2-10)
               </label>
               <div className="mt-2 space-y-2">
@@ -148,13 +148,13 @@ export function PollManager({
                       value={option.text}
                       onChange={(e) => updateOption(index, e.target.value)}
                       placeholder={`Option ${index + 1}`}
-                      className="flex-1 rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      className="flex-1 rounded-2 border border-gray-a6 bg-gray-1 px-4 py-2 text-gray-12 placeholder:text-gray-9 focus:border-accent-8 focus:outline-none focus:ring-1 focus:ring-accent-8"
                     />
                     {options.length > 2 && (
                       <button
                         type="button"
                         onClick={() => removeOption(index)}
-                        className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                        className="rounded-2 p-2 text-gray-11 hover:bg-red-a3 hover:text-red-11"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>
@@ -166,7 +166,7 @@ export function PollManager({
                 <button
                   type="button"
                   onClick={addOption}
-                  className="mt-2 text-sm text-blue-600 hover:underline"
+                  className="mt-2 text-2 text-accent-11 hover:underline"
                 >
                   + Add option
                 </button>
@@ -179,18 +179,18 @@ export function PollManager({
                   type="checkbox"
                   checked={allowMultiple}
                   onChange={(e) => setAllowMultiple(e.target.checked)}
-                  className="rounded border-gray-300"
+                  className="rounded border-gray-a6 bg-gray-1"
                 />
-                <span className="text-sm text-gray-700">Allow multiple selections</span>
+                <span className="text-2 text-gray-11">Allow multiple selections</span>
               </label>
               <label className="flex cursor-pointer items-center gap-2">
                 <input
                   type="checkbox"
                   checked={showResultsLive}
                   onChange={(e) => setShowResultsLive(e.target.checked)}
-                  className="rounded border-gray-300"
+                  className="rounded border-gray-a6 bg-gray-1"
                 />
-                <span className="text-sm text-gray-700">Show results live</span>
+                <span className="text-2 text-gray-11">Show results live</span>
               </label>
             </div>
 
@@ -217,10 +217,10 @@ export function PollManager({
       {/* Poll List */}
       <div className="space-y-4">
         {polls.length === 0 && !isCreating && (
-          <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-8 text-center">
-            <BarChart3 className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">No polls yet</h3>
-            <p className="mt-1 text-sm text-gray-500">
+          <div className="glass-light rounded-3 border border-dashed border-gray-a6/50 p-8 text-center">
+            <BarChart3 className="mx-auto h-12 w-12 text-gray-8" />
+            <h3 className="mt-4 text-3 font-medium text-gray-12">No polls yet</h3>
+            <p className="mt-1 text-2 text-gray-11">
               Create your first poll to engage your audience.
             </p>
           </div>
@@ -229,21 +229,21 @@ export function PollManager({
         {polls.map((poll) => (
           <div
             key={poll.id}
-            className="rounded-xl border border-gray-200 bg-white p-6"
+            className="glass shadow-glass-sm rounded-3 p-6 glass-interactive"
           >
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-gray-900">{poll.question}</h3>
+                  <h3 className="font-semibold text-gray-12">{poll.question}</h3>
                   <span
-                    className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                    className={`rounded-full px-2 py-0.5 text-1 font-medium ${
                       statusColors[poll.status]
                     }`}
                   >
                     {poll.status}
                   </span>
                 </div>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-2 text-gray-11">
                   {poll.total_responses} responses
                 </p>
               </div>
@@ -252,7 +252,7 @@ export function PollManager({
                   <button
                     onClick={() => handleStatusChange(poll.id, 'active')}
                     disabled={isPending}
-                    className="rounded-lg p-2 text-gray-400 hover:bg-green-50 hover:text-green-600"
+                    className="rounded-2 p-2 text-gray-11 hover:bg-green-a3 hover:text-green-11"
                     title="Start Poll"
                   >
                     <Play className="h-4 w-4" />
@@ -262,7 +262,7 @@ export function PollManager({
                   <button
                     onClick={() => handleStatusChange(poll.id, 'closed')}
                     disabled={isPending}
-                    className="rounded-lg p-2 text-gray-400 hover:bg-blue-50 hover:text-blue-600"
+                    className="rounded-2 p-2 text-gray-11 hover:bg-blue-a3 hover:text-blue-11"
                     title="Close Poll"
                   >
                     <Square className="h-4 w-4" />
@@ -271,7 +271,7 @@ export function PollManager({
                 <button
                   onClick={() => handleDelete(poll.id)}
                   disabled={isPending}
-                  className="rounded-lg p-2 text-gray-400 hover:bg-red-50 hover:text-red-600"
+                  className="rounded-2 p-2 text-gray-11 hover:bg-red-a3 hover:text-red-11"
                   title="Delete"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -286,15 +286,15 @@ export function PollManager({
                 const percentage = result?.percentage || 0;
                 return (
                   <div key={option.id}>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-700">{option.text}</span>
-                      <span className="text-gray-500">
+                    <div className="flex justify-between text-2">
+                      <span className="text-gray-12">{option.text}</span>
+                      <span className="text-gray-11">
                         {result?.count || 0} ({percentage}%)
                       </span>
                     </div>
-                    <div className="mt-1 h-2 overflow-hidden rounded-full bg-gray-100">
+                    <div className="mt-1 h-2 overflow-hidden rounded-full bg-gray-a4">
                       <div
-                        className="h-full rounded-full bg-blue-500 transition-all"
+                        className="h-full rounded-full bg-accent-9 transition-all"
                         style={{ width: `${percentage}%` }}
                       />
                     </div>

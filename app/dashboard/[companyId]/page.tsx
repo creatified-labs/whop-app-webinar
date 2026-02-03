@@ -39,8 +39,8 @@ export default async function DashboardPage({ params }: DashboardPageProps) {
     );
   }
 
-  // Get webinars with registration counts
-  const { webinars } = await getCompanyWebinars(company.id);
+  // Get webinars with registration counts (skip status check for faster loading)
+  const { webinars } = await getCompanyWebinars(company.id, { skipStatusCheck: true });
 
   // Calculate stats
   const totalWebinars = webinars.length;

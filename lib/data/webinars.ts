@@ -286,6 +286,9 @@ export async function getWebinarPublicView(slug: string): Promise<WebinarPublicV
       duration_minutes,
       timezone,
       status,
+      video_type,
+      video_url,
+      replay_url,
       cover_image_url,
       cta_text,
       cta_url,
@@ -295,6 +298,10 @@ export async function getWebinarPublicView(slug: string): Promise<WebinarPublicV
       polls_enabled,
       reactions_enabled,
       registration_fields,
+      is_paid,
+      price_cents,
+      allow_free_with_code,
+      stream_status,
       hosts:webinar_hosts(id, name, title, bio, image_url, display_order),
       company:companies(name, image_url),
       registrations:registrations(count)
@@ -445,6 +452,43 @@ export async function getCompanyWebinars(
   ) as WebinarWithHosts[];
 
   return { webinars, total: count ?? 0 };
+}
+
+/**
+ * Get webinar status counts in a single query (optimized for tabs)
+ */
+export async function getWebinarStatusCounts(
+  companyId: string,
+  search?: string
+): Promise<{ all: number; draft: number; scheduled: number; live: number; ended: number }> {
+  const supabase = createAdminClient();
+
+  // Use a raw SQL query to get all counts in one call
+  let query = supabase
+    .from('webinars')
+    .select('status')
+    .eq('company_id', companyId);
+
+  if (search) {
+    query = query.ilike('title', `%${search}%`);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error(`Failed to get webinar counts: ${error.message}`);
+  }
+
+  // Count each status
+  const counts = { all: 0, draft: 0, scheduled: 0, live: 0, ended: 0, cancelled: 0 };
+  for (const webinar of data || []) {
+    counts.all++;
+    if (webinar.status in counts) {
+      counts[webinar.status as keyof typeof counts]++;
+    }
+  }
+
+  return counts;
 }
 
 /**

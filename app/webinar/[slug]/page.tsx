@@ -69,7 +69,7 @@ export default async function WebinarLandingPage({ params }: PageProps) {
             className="animate-funnel-scale-in"
             style={{ animationDelay: "0.1s" }}
           >
-            <div className="funnel-glass rounded-funnel-xl px-6 py-4 text-center ring-1 ring-green-500/30">
+            <div className="glass-depth shadow-glass rounded-funnel-xl px-6 py-4 text-center ring-1 ring-green-500/30">
               <span className="inline-flex items-center gap-3">
                 <span className="relative flex h-3 w-3">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75" />
@@ -89,7 +89,7 @@ export default async function WebinarLandingPage({ params }: PageProps) {
             className="animate-funnel-scale-in"
             style={{ animationDelay: "0.1s" }}
           >
-            <div className="funnel-glass rounded-funnel-xl px-6 py-4 text-center ring-1 ring-indigo-500/30">
+            <div className="glass-depth shadow-glass rounded-funnel-xl px-6 py-4 text-center ring-1 ring-indigo-500/30">
               <p className="text-funnel-text-secondary">
                 This webinar has ended.{" "}
                 <a
@@ -110,7 +110,7 @@ export default async function WebinarLandingPage({ params }: PageProps) {
             className="animate-funnel-slide-up"
             style={{ animationDelay: "0.2s" }}
           >
-            <div className="funnel-glass rounded-funnel-2xl p-6 shadow-funnel-lg sm:p-8">
+            <div className="glass-depth shadow-glass-lg highlight-top rounded-funnel-2xl p-6 sm:p-8">
               <InlineRegistrationForm slug={slug} ctaText={webinar.cta_text} />
             </div>
           </div>

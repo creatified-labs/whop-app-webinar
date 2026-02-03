@@ -21,7 +21,7 @@ export const timezoneSchema = z.string().min(1, 'Please select a timezone');
 
 export const webinarStatusSchema = z.enum(['draft', 'scheduled', 'live', 'ended', 'cancelled']);
 
-export const videoTypeSchema = z.enum(['youtube', 'vimeo', 'hls', 'custom']);
+export const videoTypeSchema = z.enum(['url', 'whop_live', 'google_meet', 'zoom']);
 
 export const registrationFieldTypeSchema = z.enum(['name', 'email', 'phone', 'text', 'textarea', 'select']);
 
@@ -129,6 +129,9 @@ export const registrationSchema = z.object({
   utm_content: z.string().optional(),
 
   custom_fields: z.record(z.string(), z.string()).optional(),
+
+  // Payment-related fields
+  discount_code: z.string().max(50).optional(),
 });
 
 export type RegistrationInput = z.infer<typeof registrationSchema>;
